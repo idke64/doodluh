@@ -11,13 +11,12 @@
 		BoardBar
 	} from '$lib/components';
 	import Collaborators from '$lib/components/settings/Collaborators.svelte';
+	import { currModal } from '$lib/shared';
 
 	import type { Point, Action, Object, Box, Tool } from '$lib/types';
 	import { onMount } from 'svelte';
 
 	let { board, collaborators, tempObjects, loading = false } = $props();
-
-	let currModal = $state(null);
 
 	let isDrawing: boolean = $state(false);
 
@@ -108,12 +107,12 @@
 	};
 </script>
 
-<BlurContainer bind:currModal>
-	{#if currModal === 'signin'}
+<BlurContainer>
+	{#if currModal.value === 'signin'}
 		<SignInModal />
 	{/if}
-	{#if currModal === 'boards'}
-		<BoardsModal />
+	{#if currModal.value === 'boards'}
+		<BoardsModal {board} />
 	{/if}
 </BlurContainer>
 <main>
@@ -122,7 +121,7 @@
 			<BoardBar {board} {loading} />
 			<Collaborators others={collaborators.others} />
 		</div>
-		<Menu bind:currModal />
+		<Menu />
 	</div>
 	<div class="absolute bottom-4 right-4 flex gap-x-2">
 		<UndoRedoControl bind:actions bind:actionsIndex />

@@ -10,23 +10,70 @@
 		faTableCells
 	} from '@fortawesome/free-solid-svg-icons';
 	import { Dropdown } from '$lib/components';
-	// import { boards } from '$lib/shared';
-	import type { Board } from '$lib/types';
+	import { boards, currModal } from '$lib/shared';
+	import type { BoardModel, User } from '$lib/server/database/schema';
+	import { v4 as uuidv4 } from 'uuid';
+	import { getContext } from 'svelte';
+	import BoardCard from '../ui/BoardCard.svelte';
 
-	let layout: string = $state('grid');
+	let { board } = $props();
+
+	let layout: 'grid' | 'list' = $state('grid');
 	let searchQuery: string = $state('');
-	let visibility: string = $state('All');
-	let sortBy: string = $state('Alphabetical');
+	let visibility: 'All' | 'Public' | 'Private' = $state('All');
+	let sortBy: 'Alphabetical' | 'Date Created' | 'Last Modified' = $state('Alphabetical');
 
-	let filteredBoards: Board[] = $state([]);
+	let filteredBoards: BoardModel[] = $state([]);
 
-	// $effect(() => {
-	// 	const results = fuzzysort.go(searchQuery, $boards, {
-	// 		key: 'name',
-	// 		all: true
-	// 	});
-	// 	filteredBoards = results.map((result) => result.obj);
-	// });
+	$effect(() => {
+		const visibilityFiltered = boards.items.filter((board) => {
+			if (visibility === 'All') return true;
+			return board.visibility === visibility.toLowerCase();
+		});
+		const results = fuzzysort.go(searchQuery, visibilityFiltered, {
+			key: 'name',
+			all: true
+		});
+
+		let sorted = results.map((result) => result.obj);
+
+		sorted.sort((a, b) => {
+			if (sortBy === 'Alphabetical') {
+				return a.name.localeCompare(b.name);
+			} else if (sortBy === 'Date Created') {
+				return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+			} else if (sortBy === 'Last Modified') {
+				return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+			}
+			return 0;
+		});
+
+		filteredBoards = sorted;
+	});
+
+	const user: User = getContext('user');
+
+	async function handleCreate() {
+		const id = uuidv4();
+		await boards.add({
+			id,
+			name: 'Untitled Board',
+			backgroundColor: 'transparent',
+			grid: 'lines',
+			visibility: 'private',
+			userId: user?.id || null,
+			thumbnail: null,
+			createdAt: new Date(),
+			updatedAt: new Date()
+		});
+
+		handleNavigate(id);
+	}
+
+	function handleNavigate(id: string) {
+		currModal.value = null;
+		window.location.href = `/board/${id}`;
+	}
 </script>
 
 <div
@@ -54,6 +101,7 @@
 						<button
 							class={layout === 'list' ? 'btn-icon-active' : 'btn-icon'}
 							onclick={() => (layout = 'list')}
+							disabled={true}
 						>
 							<Fa icon={faList} />
 						</button>
@@ -72,26 +120,17 @@
 						/>
 					</div>
 				</div>
-				<button class="btn-primary gap-x-1.5 px-3">Create <Fa icon={faPlus} /></button>
+				<button class="btn-primary gap-x-1.5 px-3" onclick={handleCreate}>
+					Create <Fa icon={faPlus} />
+				</button>
 			</div>
 		</div>
 		<div
 			class="grid h-[512px] w-full grid-cols-4 gap-4 overflow-y-auto max-lg:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1"
 		>
 			{#if layout === 'grid'}
-				{#each filteredBoards as board}
-					<button
-						class="{board.id === '5'
-							? 'border-border'
-							: 'border-transparent hover:border-border'} self-start rounded border-2 p-3 duration-200 hover:border-border"
-					>
-						<div class="flex flex-col gap-y-2">
-							<div class="aspect-video w-full overflow-hidden rounded-sm">
-								<div class="h-full w-full bg-cyan-400"></div>
-							</div>
-							<h5 class="text-start">{board.name}</h5>
-						</div>
-					</button>
+				{#each filteredBoards as filteredBoard}
+					<BoardCard board={filteredBoard} {handleNavigate} selectedBoardId={board.id} />
 				{/each}
 			{:else}
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] as key}

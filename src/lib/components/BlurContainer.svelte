@@ -1,11 +1,12 @@
 <script lang="ts">
-	let { currModal = $bindable(), children } = $props();
+	import { currModal } from '$lib/shared';
+	let { children } = $props();
 </script>
 
 <button
 	type="button"
-	class={`${currModal == null ? 'hidden' : ''} absolute z-40 flex h-full w-full cursor-default items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity`}
-	onclick={() => (currModal = null)}
+	class={`${currModal.value == null ? 'hidden' : ''} absolute z-40 flex h-full w-full cursor-default items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity`}
+	onclick={() => (currModal.value = null)}
 	aria-label="Close modal"
 ></button>
 

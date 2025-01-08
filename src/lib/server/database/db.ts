@@ -15,7 +15,7 @@ const pool = new Pool({
 export const db = drizzle(pool, { schema });
 
 try {
-	await migrate(db, { migrationsFolder: './src/lib/server/database/migrations' });
+	migrate(db, { migrationsFolder: './src/lib/server/database/migrations' });
 	console.log('Migration complete');
 } catch (error) {
 	console.error('Migration failed:', error);

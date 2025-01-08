@@ -462,6 +462,7 @@
 		[min.x, max.x, min.y, max.y] = [start.x, start.x, start.y, start.y];
 		if (collaborators.self.objectsSelected.length > 0) {
 			collaborators.updateSelf({ objectsSelected: [] });
+			console.log('yessir');
 		}
 		erased = [];
 		strokePath = [{ x: start.x, y: start.y }];

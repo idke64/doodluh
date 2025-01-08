@@ -1,6 +1,11 @@
 <script lang="ts">
 	import App from '../App.svelte';
-	import { board, collaborators, tempObjects } from '$lib/shared';
+	import { localBoard, localCollaborators, localTempObjects } from '$lib/shared';
 </script>
 
-<App {board} {collaborators} {tempObjects} />
+<App
+	board={localBoard}
+	collaborators={localCollaborators}
+	tempObjects={localTempObjects}
+	loading={localBoard.loading}
+/>

@@ -1,6 +1,6 @@
 import { error, json, type RequestEvent, type RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/database/db';
-import type { Board, Object } from '$lib/types';
+import type { Board } from '$lib/types';
 import { boards, objects, type BoardModel } from '$lib/server/database/schema';
 import { eq } from 'drizzle-orm';
 
@@ -12,11 +12,11 @@ export const GET: RequestHandler = async (event: RequestEvent): Promise<Response
 	}
 
 	try {
-		const userBoards: BoardModel[] = await db
+		const fetchedBoards: BoardModel[] = await db
 			.select()
 			.from(boards)
 			.where(eq(boards.userId, user.id));
-		return json(userBoards);
+		return json(fetchedBoards);
 	} catch (err) {
 		throw error(500, 'Failed to get boards');
 	}
@@ -26,32 +26,26 @@ export const POST: RequestHandler = async (event: RequestEvent): Promise<Respons
 	const { user } = event.locals;
 
 	try {
-		const board: Board = await event.request.json();
+		const newBoard: BoardModel = await event.request.json();
 
-		await db.transaction(async (tx) => {
-			await tx.insert(boards).values({
-				id: board.id,
-				name: board.name,
-				backgroundColor: board.backgroundColor,
-				grid: board.grid,
-				visibility: board.visibility,
-				userId: user?.id || null,
-				thumbnail: board.thumbnail ?? null,
-				createdAt: board.createdAt,
-				updatedAt: board.updatedAt
-			});
+		console.log(newBoard);
 
-			if (board.objects.length > 0) {
-				await tx.insert(objects).values(
-					board.objects.map((obj) => ({
-						...obj,
-						boardId: board.id
-					}))
-				);
-			}
+		await db.insert(boards).values({
+			id: newBoard.id,
+			name: newBoard.name,
+			backgroundColor: newBoard.backgroundColor,
+			grid: newBoard.grid,
+			visibility: user != null ? 'public' : newBoard.visibility,
+			userId: user?.id || null,
+			thumbnail: newBoard.thumbnail ?? null,
+			createdAt: new Date(newBoard.createdAt),
+			updatedAt: new Date(newBoard.updatedAt)
 		});
+
 		return json({ status: 201 });
 	} catch (err) {
+		console.log(err);
+
 		error(500, 'Failed to create board');
 	}
 };

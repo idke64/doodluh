@@ -2,9 +2,17 @@
 	import { ThemeProvider } from '$lib/components/';
 	import '../app.css';
 	import { setContext } from 'svelte';
+	import { boards } from '$lib/shared';
+
 	let { children, data } = $props();
 
-	setContext('user', data.user);
+	const { user } = data;
+
+	setContext('user', user);
+
+	boards.setLocal(!user);
+
+	boards.init();
 </script>
 
 <ThemeProvider>

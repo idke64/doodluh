@@ -1,9 +1,14 @@
 <script lang="ts">
 	import { createRealtimeBoard } from '$lib/shared';
 	import App from '../../../App.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import { ErrorPage } from '$lib/components';
 
-	const { board, collaborators, tempObjects } = createRealtimeBoard($page.params.boardId);
+	const { board, collaborators, tempObjects } = createRealtimeBoard(page.params.boardId);
 </script>
 
-<App {board} {collaborators} {tempObjects} loading={board.loading} />
+{#if board.exists}
+	<App {board} {collaborators} {tempObjects} loading={board.loading} />
+{:else}
+	<ErrorPage errorMsg="Board not found" status={404} />
+{/if}

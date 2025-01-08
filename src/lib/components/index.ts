@@ -1,5 +1,4 @@
 export { default as Canvas } from './Canvas.svelte';
-export { default as Shape } from './Shape.svelte';
 export { default as BlurContainer } from './BlurContainer.svelte';
 export { default as ThemeProvider } from './ThemeProvider.svelte';
 
@@ -21,3 +20,6 @@ export { default as BoardsModal } from './modals/BoardsModal.svelte';
 
 export { default as Input } from './ui/Input.svelte';
 export { default as Dropdown } from './ui/Dropdown.svelte';
+export { default as BoardCard } from './ui/BoardCard.svelte';
+export { default as ErrorPage } from './ui/ErrorPage.svelte';
+export { default as Shape } from './ui/Shape.svelte';

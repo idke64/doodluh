@@ -2,10 +2,8 @@
 	import {
 		faChalkboard,
 		faDownload,
-		faGear,
 		faHamburger,
 		faKeyboard,
-		faPerson,
 		faSun,
 		faTerminal,
 		faUser,
@@ -18,10 +16,9 @@
 	import { getContext } from 'svelte';
 	import type { User } from '$lib/server/database/schema';
 	import { scale } from 'svelte/transition';
+	import { currModal } from '$lib/shared';
 
 	const user: User = getContext('user');
-
-	let { currModal = $bindable() } = $props();
 
 	let isOpen = $state(false);
 
@@ -95,7 +92,7 @@
 					<button
 						class="btn-dropdown"
 						onclick={() => {
-							currModal = 'signin';
+							currModal.value = 'signin';
 							isOpen = false;
 						}}><Fa class="aspect-square" icon={faUser} />Sign In</button
 					>
@@ -107,7 +104,7 @@
 					<button
 						class="btn-dropdown"
 						onclick={() => {
-							currModal = 'boards';
+							currModal.value = 'boards';
 							isOpen = false;
 						}}><Fa class="aspect-square" icon={faChalkboard} />Boards</button
 					>

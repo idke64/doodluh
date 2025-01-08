@@ -19,6 +19,6 @@
 		"resolveFullPaths": true,
 		"verbose": false
 	},
-	"include": ["server/**/*", "src/lib/**/*"],
+	"include": ["socket/**/*", "src/lib/server/**/*"],
 	"exclude": ["node_modules"]
 }

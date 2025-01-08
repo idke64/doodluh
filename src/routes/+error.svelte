@@ -1,9 +1,6 @@
 <script>
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+	import ErrorPage from '$lib/components/ui/ErrorPage.svelte';
 </script>
 
-<div class="error-container">
-	<h1>{$page.status}: {$page.error?.message || 'Error'}</h1>
-	<p>Sorry, something went wrong.</p>
-	<!-- <a href="/">Go back home</a> -->
-</div>
+<ErrorPage status={page.status} errorMsg={page.error?.message} />

@@ -74,6 +74,7 @@ export const GET = async (event: RequestEvent): Promise<Response> => {
 				.set({ githubId, githubName })
 				.where(eq(users.email, githubPrimaryEmail));
 		}
+
 		const sessionToken = generateSessionToken();
 		const session = await createSession(sessionToken, existingUser[0].id);
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);

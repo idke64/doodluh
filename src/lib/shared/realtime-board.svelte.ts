@@ -37,6 +37,7 @@ export function createRealtimeBoard(boardId: string) {
 		...defaultBoard,
 		id: boardId,
 		loading: true,
+		exists: false,
 
 		update(updates: Partial<Board>, emit: boolean = true) {
 			Object.assign(this, { ...updates, updatedAt: new Date() });
@@ -92,8 +93,7 @@ export function createRealtimeBoard(boardId: string) {
 					updatedObjects.push(object);
 				}
 			});
-			this.length = 0;
-			this.push(...updatedObjects);
+			Object.assign(this, updatedObjects);
 
 			if (emit && socket?.connected) {
 				emitters.updateTempObjects(newObjects);
@@ -102,8 +102,7 @@ export function createRealtimeBoard(boardId: string) {
 
 		delete(objectIds: string[], emit: boolean = true) {
 			const filtered: Object[] = [...this].filter((object) => !objectIds.includes(object.id));
-			this.length = 0;
-			this.push(...filtered);
+			Object.assign(this, filtered);
 
 			if (emit && socket?.connected) {
 				emitters.deleteTempObjects(objectIds);
@@ -114,7 +113,7 @@ export function createRealtimeBoard(boardId: string) {
 	const emitters = {
 		updateSelf: throttle((updates: Partial<Collaborator>) => {
 			socket?.emit('update_collaborator', updates, collaborators.self.id);
-		}, 300),
+		}, 100),
 		updateTempObjects: throttle((newObjects: Object[]) => {
 			const transportObjects = newObjects.map((object) => {
 				return objectToTransport(object);
@@ -133,7 +132,13 @@ export function createRealtimeBoard(boardId: string) {
 		updateSelf(updates: Partial<Collaborator>, emit: boolean = true) {
 			this.self = { ...this.self, ...updates };
 			if (emit && socket?.connected) {
-				emitters.updateSelf({ ...updates, lastActive: new Date() });
+				emitters.updateSelf({
+					...updates,
+					cursor: this.self.cursor,
+					objectsSelected: this.self.objectsSelected,
+					objectsSelectedBox: this.self.objectsSelectedBox,
+					lastActive: new Date()
+				});
 			}
 		},
 
@@ -217,6 +222,11 @@ export function createRealtimeBoard(boardId: string) {
 
 		socket.on('disconnect', () => {
 			console.log('Disconnected from board:', board.id);
+		});
+
+		socket.on('connect_error', (error) => {
+			console.error('Failed to connect to board:');
+			board.exists = false;
 		});
 	}
 	return { board, collaborators, tempObjects };

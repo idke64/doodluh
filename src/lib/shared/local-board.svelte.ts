@@ -5,14 +5,14 @@ import type { Board, Collaborator, Object } from '$lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 const defaultBoard: Board = {
-	id: uuidv4(),
-	name: 'Untitled',
+	id: 'local',
+	name: 'Untitled Board',
 	visibility: 'private',
 	createdAt: new Date(),
 	updatedAt: new Date(),
 	objects: [],
 	backgroundColor: 'transparent',
-	grid: 'none'
+	grid: 'lines'
 };
 
 const defaultSelf: Collaborator = {
@@ -36,6 +36,7 @@ export function createLocalBoard() {
 		...(browser
 			? JSON.parse(localStorage.getItem('board') || JSON.stringify(defaultBoard))
 			: defaultBoard),
+		loading: true,
 
 		update(updates: Partial<Board>, emit: boolean = true) {
 			Object.assign(this, { ...updates, updatedAt: new Date() });
@@ -77,14 +78,12 @@ export function createLocalBoard() {
 					updatedObjects.push(object);
 				}
 			});
-			this.length = 0;
-			this.push(...updatedObjects);
+			Object.assign(this, updatedObjects);
 		},
 
 		delete(objectIds: string[], emit: boolean = true) {
 			const filtered: Object[] = [...this].filter((object) => !objectIds.includes(object.id));
-			this.length = 0;
-			this.push(...filtered);
+			Object.assign(this, filtered);
 		}
 	});
 
@@ -112,12 +111,13 @@ export function createLocalBoard() {
 	$effect.root(() => {
 		$effect(() => {
 			if (browser) {
+				board.loading = false;
 				localStorage.setItem('board', JSON.stringify(board));
 			}
 		});
 	});
 
-	return { board, collaborators, tempObjects };
+	return { localBoard: board, localCollaborators: collaborators, localTempObjects: tempObjects };
 }
 
-export const { board, collaborators, tempObjects } = createLocalBoard();
+export const { localBoard, localCollaborators, localTempObjects } = createLocalBoard();
