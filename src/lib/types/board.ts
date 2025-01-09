@@ -121,7 +121,7 @@ export interface Collaborator {
 	cursor: Point;
 	userId?: string;
 	color: string;
-	objectsSelected: Object[];
+	objectsSelectedIds: string[];
 	objectsSelectedBox: Box;
 	lastActive: Date;
 }

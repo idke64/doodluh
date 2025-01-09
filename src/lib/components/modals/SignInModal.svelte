@@ -26,11 +26,11 @@
 			<a class="btn-secondary w-full gap-x-1.5" href="/api/auth/login/github"
 				><Fa icon={faGithub} />Continue with Github</a
 			>
-			<span class="mt-2 self-center text-sm font-medium text-text-3">or</span>
+			<!-- <span class="mt-2 self-center text-sm font-medium text-text-3">or</span>
 			<form class="flex w-full flex-col gap-y-3">
 				<Input type="email" name="email" placeholder="example@email.com" label="Email" />
 				<button class="btn-primary w-full">Submit</button>
-			</form>
+			</form> -->
 		</div>
 	</div>
 </div>

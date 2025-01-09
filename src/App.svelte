@@ -11,7 +11,7 @@
 		BoardBar
 	} from '$lib/components';
 	import Collaborators from '$lib/components/settings/Collaborators.svelte';
-	import { currModal } from '$lib/shared';
+	import { boards, currModal } from '$lib/shared';
 
 	import type { Point, Action, Object, Box, Tool } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -48,17 +48,19 @@
 		}
 
 		if (key === 'Backspace' || key === 'Delete') {
-			if (collaborators.self.objectsSelected.length > 0) {
+			if (collaborators.self.objectsSelectedIds.length > 0) {
 				actions = [
 					...actions.slice(0, actionsIndex[0] + 1),
 					{
 						type: 'remove',
-						objects: collaborators.self.objectsSelected
+						objects: board.objects.filter((object: Object) =>
+							collaborators.self.objectsSelectedIds.includes(object.id)
+						)
 					}
 				];
 				actionsIndex = [actions.length - 1, 0];
-				board.deleteObjects(collaborators.self.objectsSelected.map((object: Object) => object.id));
-				collaborators.updateSelf({ objectsSelected: [] });
+				board.deleteObjects(collaborators.self.objectsSelectedIds);
+				collaborators.updateSelf({ objectsSelectedIds: [] });
 			}
 		}
 

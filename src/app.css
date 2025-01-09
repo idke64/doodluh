@@ -109,7 +109,7 @@
 	}
 
 	html {
-		@apply touch-none overflow-x-hidden overflow-y-hidden overscroll-none bg-bg-1 font-rubik;
+		@apply touch-none select-none overflow-x-hidden overflow-y-hidden overscroll-none bg-bg-1 font-rubik;
 	}
 
 	h1 {

@@ -54,7 +54,7 @@ io.on('connection', async (socket) => {
 		userId: user?.id,
 		cursor: { x: 0, y: 0 },
 		color: generateRandomColor(usedColors),
-		objectsSelected: [],
+		objectsSelectedIds: [],
 		objectsSelectedBox: {
 			pos: { x: 0, y: 0 },
 			width: 0,

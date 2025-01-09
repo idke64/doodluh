@@ -22,7 +22,7 @@ const defaultSelf: Collaborator = {
 	picture: '',
 	cursor: { x: 0, y: 0 },
 	color: '',
-	objectsSelected: [],
+	objectsSelectedIds: [],
 	objectsSelectedBox: {
 		pos: { x: 0, y: 0 },
 		width: 0,
@@ -60,10 +60,7 @@ export function createRealtimeBoard(boardId: string) {
 			this.updatedAt = new Date();
 
 			if (emit && socket?.connected) {
-				const transportObjects = newObjects.map((object) => {
-					return objectToTransport(object);
-				});
-				socket.emit('update_objects', transportObjects);
+				emitters.updateObjects(newObjects);
 			}
 		},
 
@@ -122,7 +119,13 @@ export function createRealtimeBoard(boardId: string) {
 		}, 500),
 		deleteTempObjects: throttle((objectIds: string[]) => {
 			socket?.emit('delete_temp_objects', objectIds);
-		}, 500)
+		}, 500),
+		updateObjects: throttle((newObjects: Object[]) => {
+			const transportObjects = newObjects.map((object) => {
+				return objectToTransport(object);
+			});
+			socket?.emit('update_objects', transportObjects);
+		}, 100)
 	};
 
 	let collaborators = $state({
@@ -135,7 +138,7 @@ export function createRealtimeBoard(boardId: string) {
 				emitters.updateSelf({
 					...updates,
 					cursor: this.self.cursor,
-					objectsSelected: this.self.objectsSelected,
+					objectsSelectedIds: this.self.objectsSelectedIds,
 					objectsSelectedBox: this.self.objectsSelectedBox,
 					lastActive: new Date()
 				});
@@ -198,6 +201,7 @@ export function createRealtimeBoard(boardId: string) {
 		});
 
 		socket.on('user_join', (collaborator: Collaborator) => {
+			console.log('hello');
 			collaborators.updateOther(collaborator.id, collaborator);
 		});
 

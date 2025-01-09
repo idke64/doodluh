@@ -21,7 +21,7 @@ const defaultSelf: Collaborator = {
 	picture: '',
 	cursor: { x: 0, y: 0 },
 	color: '',
-	objectsSelected: [],
+	objectsSelectedIds: [],
 	objectsSelectedBox: {
 		pos: { x: 0, y: 0 },
 		width: 0,

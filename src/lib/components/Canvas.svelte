@@ -77,34 +77,10 @@
 		};
 	});
 
-	// let objects: Object[] = $state([]);
-
-	// $effect(() => {
-	// 	objects = board.objects;
-	// });
-
-	// $effect(() => {
-	// 	console.log('sdsds');
-	// 	updateboardStore((board: Board) => ({
-	// 		...board,
-	// 		objects: board.objects.filter((obj) => !collaborators.self.objectsSelected.includes(obj))
-	// 	}));
-	// });
-
-	// $effect(() => {
-	// 	collaborators.self.objectsSelected;
-	// 	scale;
-	// 	offset;
-	// 	$theme;
-	// 	untrack(() => {
-	// 		requestAnimationFrame(drawOutlines);
-	// 	});
-	// });
-
 	$effect(() => {
-		collaborators.self.objectsSelected;
+		collaborators.self.objectsSelectedIds;
 		collaborators.others.map((other: Collaborator) => {
-			other.objectsSelected;
+			other.objectsSelectedIds;
 			other.cursor;
 		});
 		board.objects;
@@ -122,7 +98,7 @@
 		if (actionsIndex[1] == 0) return;
 
 		untrack(() => {
-			collaborators.updateSelf({ objectsSelected: [] });
+			collaborators.updateSelf({ objectsSelectedIds: [] });
 
 			if (actionsIndex[1] == 1) {
 				switch (actions[actionsIndex[0]].type) {
@@ -160,26 +136,28 @@
 		ctxOutline.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		for (const other of collaborators.others) {
-			for (const object of other.objectsSelected ?? []) {
+			for (const objectId of other.objectsSelectedIds ?? []) {
+				const object = board.objects.find((object: Object) => object.id === objectId);
 				if (object.type === 'line') {
 					drawLineOutline(object, other.color);
 				} else {
-					drawBoxOutline(object.box, other.objectsSelected.length == 1, false, other.color);
+					drawBoxOutline(object.box, other.objectsSelectedIds.length == 1, false, other.color);
 				}
 			}
-			if (other.objectsSelected?.length > 1) {
+			if (other.objectsSelectedIds?.length > 1) {
 				drawBoxOutline(other.objectsSelectedBox, true, true, other.color);
 			}
 		}
 
-		for (const object of collaborators.self.objectsSelected ?? []) {
+		for (const objectId of collaborators.self.objectsSelectedIds ?? []) {
+			const object = board.objects.find((object: Object) => object.id === objectId);
 			if (object.type === 'line') {
 				drawLineOutline(object);
 			} else {
-				drawBoxOutline(object.box, collaborators.self.objectsSelected.length == 1);
+				drawBoxOutline(object.box, collaborators.self.objectsSelectedIds.length == 1);
 			}
 		}
-		if (collaborators.self.objectsSelected.length > 1) {
+		if (collaborators.self.objectsSelectedIds.length > 1) {
 			drawBoxOutline(collaborators.self.objectsSelectedBox, true, true);
 		}
 	}
@@ -331,25 +309,29 @@
 			switch (type) {
 				case 'pencil':
 					ctx.beginPath();
-					let p1: Point = points![0];
-					if (points!.length == 1) {
+					const absolutePoints = points!.map((point: Point) => ({
+						x: point.x + box.pos.x,
+						y: point.y + box.pos.y
+					}));
+					let p1: Point = absolutePoints![0];
+					if (absolutePoints!.length == 1) {
 						const localP1 = getLocalPoint(p1);
 						ctx.moveTo(localP1.x, localP1.y);
 						ctx.lineTo(localP1.x + 1, localP1.y + 1);
 						ctx.stroke();
 						break;
 					}
-					let p2: Point = points![1];
+					let p2: Point = absolutePoints![1];
 					let localP1 = getLocalPoint(p1);
 					ctx.moveTo(localP1.x, localP1.y);
-					for (let i = 1; i < points!.length; i++) {
+					for (let i = 1; i < absolutePoints!.length; i++) {
 						const midPoint: Point = getLocalPoint({
 							x: (p1.x + p2.x) / 2,
 							y: (p1.y + p2.y) / 2
 						});
 						ctx.quadraticCurveTo(localP1.x, localP1.y, midPoint.x, midPoint.y);
-						p1 = points![i];
-						p2 = points![i + 1];
+						p1 = absolutePoints![i];
+						p2 = absolutePoints![i + 1];
 						localP1 = getLocalPoint(p1);
 					}
 					ctx.stroke();
@@ -430,17 +412,16 @@
 
 	let initialGesture: GestureState;
 
+	let isPanZoom = false;
 	let isDragging = false;
 
 	function handleStart(e: MouseEvent | TouchEvent) {
 		if (e instanceof TouchEvent && e.touches.length >= 2) {
-			isDragging = true;
+			isPanZoom = true;
 			e.preventDefault();
 			const rect = canvas.getBoundingClientRect();
 
 			const touches = Array.from(e.touches);
-
-			console.log(e);
 
 			initialGesture = {
 				distance:
@@ -457,18 +438,27 @@
 		}
 
 		isDrawing = true;
-
 		start = getEventPoint(e);
 		[min.x, max.x, min.y, max.y] = [start.x, start.x, start.y, start.y];
-		if (collaborators.self.objectsSelected.length > 0) {
-			collaborators.updateSelf({ objectsSelected: [] });
-			console.log('yessir');
-		}
 		erased = [];
 		strokePath = [{ x: start.x, y: start.y }];
 
 		if (tool == 'arrow') {
 			selectTopItem();
+			if (boxContainsPoint(collaborators.self.objectsSelectedBox, start)) {
+				isDragging = true;
+			} else {
+				if (collaborators.self.objectsSelectedIds.length > 0) {
+					collaborators.updateSelf({
+						objectsSelectedIds: [],
+						objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+					});
+				}
+			}
+		} else {
+			if (collaborators.self.objectsSelectedIds.length > 0) {
+				collaborators.updateSelf({ objectsSelectedIds: [] });
+			}
 		}
 	}
 
@@ -481,7 +471,7 @@
 				const dist = Math.hypot(start.x - localStart.x, start.y - localStart.y);
 				const dist2 = Math.hypot(start.x - localEnd.x, start.y - localEnd.y);
 				if (dist < 100 || dist2 < 100) {
-					collaborators.updateSelf({ objectsSelected: [object] });
+					collaborators.updateSelf({ objectsSelectedIds: [object.id] });
 					return;
 				}
 			} else {
@@ -491,7 +481,10 @@
 					start.y >= object.box.pos.y &&
 					start.y <= object.box.pos.y + object.box.height
 				) {
-					collaborators.updateSelf({ objectsSelected: [object] });
+					collaborators.updateSelf({
+						objectsSelectedIds: [object.id],
+						objectsSelectedBox: object.box
+					});
 					return;
 				}
 			}
@@ -501,7 +494,6 @@
 		collaborators.updateSelf({ cursor: getEventPoint(e) });
 
 		if (e instanceof TouchEvent && e.touches.length >= 2) {
-			console.log('yess!!!!');
 			handleStop(e);
 
 			e.preventDefault();
@@ -549,7 +541,7 @@
 
 		switch (tool) {
 			case 'arrow':
-				moveSelector(curr);
+				moveArrow(curr);
 				break;
 			case 'pencil':
 				movePencil(curr);
@@ -628,7 +620,7 @@
 		ctxOutline.lineTo(localEnd.x, localEnd.y);
 		ctxOutline.stroke();
 
-		const handleSize = 12;
+		const handleSize = 10;
 
 		const nodes = [
 			[localStart.x, localStart.y],
@@ -661,13 +653,13 @@
 	) {
 		ctxOutline.save();
 
-		const handleSize = 12;
+		const handleSize = 10;
 
 		ctxOutline.strokeStyle = color;
-		ctxOutline.lineWidth = 2;
+		ctxOutline.lineWidth = 1;
 		ctxOutline.globalAlpha = 1;
 
-		ctxOutline.setLineDash(dotted ? [5, 5] : []);
+		ctxOutline.setLineDash(dotted ? [4, 3] : []);
 
 		const outlinePos: Point = getLocalPoint({
 			x: box.pos.x,
@@ -754,7 +746,7 @@
 			height: Math.abs(curr.y - start.y),
 			rotation: 0
 		};
-		const selectedObjects = board.objects.filter(
+		const objectsSelected = board.objects.filter(
 			(object: Object) =>
 				boxContainsBox(selectionBox, object.box) || boxesOverlap(selectionBox, object.box)
 		);
@@ -762,7 +754,7 @@
 		let topLeft: Point = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
 		let bottomRight: Point = { x: 0, y: 0 };
 
-		selectedObjects.forEach((object: Object) => {
+		objectsSelected.forEach((object: Object) => {
 			const corners: Point[] = getBoxCorners(object.box);
 			corners.forEach((corner) => {
 				topLeft = {
@@ -776,9 +768,9 @@
 			});
 		});
 
-		if (selectedObjects.length != collaborators.self.objectsSelected.length) {
+		if (objectsSelected.length != collaborators.self.objectsSelectedIds.length) {
 			collaborators.updateSelf({
-				objectsSelected: selectedObjects,
+				objectsSelectedIds: objectsSelected.map((object: Object) => object.id),
 				objectsSelectedBox: {
 					pos: topLeft,
 					width: bottomRight.x - topLeft.x,
@@ -789,7 +781,52 @@
 		}
 	}
 
-	function moveSelector(curr: Point) {
+	function moveArrow(curr: Point) {
+		if (isDragging) {
+			const diff = {
+				x: curr.x - start.x,
+				y: curr.y - start.y
+			};
+
+			collaborators.updateSelf({
+				objectsSelectedBox: {
+					...collaborators.self.objectsSelectedBox,
+					pos: {
+						x: collaborators.self.objectsSelectedBox.pos.x + diff.x,
+						y: collaborators.self.objectsSelectedBox.pos.y + diff.y
+					}
+				}
+			});
+
+			board.updateObjects(
+				board.objects.map((object: Object) => {
+					if (collaborators.self.objectsSelectedIds.includes(object.id)) {
+						if (object.type === 'line') {
+							return {
+								...object,
+								start: { x: object.start.x + diff.x, y: object.start.y + diff.y },
+								end: { x: object.end.x + diff.x, y: object.end.y + diff.y },
+								box: {
+									...object.box,
+									pos: { x: object.box.pos.x + diff.x, y: object.box.pos.y + diff.y }
+								}
+							};
+						} else {
+							return {
+								...object,
+								box: {
+									...object.box,
+									pos: { x: object.box.pos.x + diff.x, y: object.box.pos.y + diff.y }
+								}
+							};
+						}
+					}
+				})
+			);
+
+			start = curr;
+			return;
+		}
 		ctxTemp.save();
 
 		ctxTemp.strokeStyle = '#00c864';
@@ -1033,7 +1070,15 @@
 			useContrast: toolConfig.useContrast,
 			thickness: toolConfig.thickness,
 			zIndex: 500,
-			style: { ...toolConfig, points: strokePath.length > 0 ? strokePath : undefined }
+			style: {
+				...toolConfig,
+				points:
+					strokePath.length > 0
+						? strokePath.map((p: Point) => {
+								return { x: p.x - min.x, y: p.y - min.y };
+							})
+						: undefined
+			}
 		};
 
 		return object;
@@ -1042,6 +1087,7 @@
 	function resetDrawingState(): void {
 		isDrawing = false;
 		isDragging = false;
+		isPanZoom = false;
 		[start.x, start.y] = [0, 0];
 		strokePath = [];
 	}
@@ -1063,7 +1109,7 @@
 				break;
 			case 'pencil':
 				strokePath.push({ x: curr.x, y: curr.y });
-				if (strokePath.length == 1 && isDragging) break;
+				if (strokePath.length == 1 && isPanZoom) break;
 				currItem = getItem(curr);
 				actions = [
 					...actions.slice(0, actionsIndex[0] + 1),
@@ -1122,9 +1168,30 @@
 		resetDrawingState();
 	}
 
-	function handleWheel(e: WheelEvent) {
-		e.preventDefault();
+	function handleZoom(zoom: number, center: Point) {
+		const newScale = Math.max(scale * zoom, 0.01);
 
+		offset = {
+			x: center.x - (center.x - offset.x) * (newScale / scale),
+			y: center.y - (center.y - offset.y) * (newScale / scale)
+		};
+
+		scale = newScale;
+	}
+
+	function handlePan(delta: Point) {
+		offset = { x: offset.x - delta.x, y: offset.y - delta.y };
+	}
+
+	function detectTrackPad(e: WheelEvent): boolean {
+		const { deltaY } = e;
+		if (deltaY && !Number.isInteger(deltaY)) {
+			return true;
+		}
+		return false;
+	}
+
+	function handleWheel(e: WheelEvent) {
 		if (e.ctrlKey) {
 			const rect = canvas.getBoundingClientRect();
 
@@ -1133,16 +1200,17 @@
 				y: (e.clientY - rect.top) * dpr
 			};
 
-			const newScale = Math.max(scale * (1 - e.deltaY * 0.01), 0.01);
+			let zoom;
 
-			offset = {
-				x: pointer.x - (pointer.x - offset.x) * (newScale / scale),
-				y: pointer.y - (pointer.y - offset.y) * (newScale / scale)
-			};
+			if (detectTrackPad(e)) {
+				zoom = 1 - e.deltaY * 0.01;
+			} else {
+				zoom = 1 - e.deltaY * 0.001;
+			}
 
-			scale = newScale;
+			handleZoom(zoom, pointer);
 		} else {
-			offset = { x: offset.x - e.deltaX, y: offset.y - e.deltaY };
+			handlePan({ x: e.deltaX, y: e.deltaY });
 		}
 	}
 </script>
@@ -1151,12 +1219,15 @@
 	<canvas
 		bind:this={canvas}
 		class={`absolute z-30 ${tool === 'pencil' || tool === 'shapes' || tool === 'line' ? 'cursor-crosshair' : tool === 'hand' ? 'cursor-grab' : tool === 'text' ? 'cursor-text' : 'cursor-auto'} ${'background-color-' + board.backgroundColor}`}
-		onmousedown={handleStart}
-		onmousemove={handleMove}
-		onmouseup={handleStop}
-		onmouseleave={handleStop}
-		onwheel={handleWheel}
 	></canvas>
 	<canvas bind:this={canvasOutline} class="pointer-events-none absolute z-50"></canvas>
 	<canvas bind:this={canvasTemp} class="pointer-events-none absolute z-40"></canvas>
 </div>
+
+<svelte:window
+	onmousedown={handleStart}
+	onmousemove={handleMove}
+	onmouseup={handleStop}
+	onmouseleave={handleStop}
+	onwheel={handleWheel}
+/>
