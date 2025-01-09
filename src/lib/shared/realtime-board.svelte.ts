@@ -37,7 +37,7 @@ export function createRealtimeBoard(boardId: string) {
 		...defaultBoard,
 		id: boardId,
 		loading: true,
-		exists: false,
+		exists: true,
 
 		update(updates: Partial<Board>, emit: boolean = true) {
 			Object.assign(this, { ...updates, updatedAt: new Date() });
@@ -224,8 +224,8 @@ export function createRealtimeBoard(boardId: string) {
 			console.log('Disconnected from board:', board.id);
 		});
 
-		socket.on('connect_error', (error) => {
-			console.error('Failed to connect to board:');
+		socket.on('connect_error', (err) => {
+			console.error('Failed to connect to board');
 			board.exists = false;
 		});
 	}
