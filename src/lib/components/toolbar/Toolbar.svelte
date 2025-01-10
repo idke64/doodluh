@@ -15,6 +15,7 @@
 	import { ToolbarSettings, Shape } from '$lib/components';
 	import { toolSettings } from '$lib/shared';
 	import type { Point } from '$lib/types/geometry';
+	import { fly } from 'svelte/transition';
 
 	const tools = [
 		{ id: 'arrow', label: 'Arrow', icon: faArrowPointer },
@@ -59,6 +60,7 @@
 	class="absolute left-4 top-1/2 z-10 flex -translate-y-1/2 select-none flex-col items-center justify-center rounded bg-bg-2 shadow"
 	role="toolbar"
 	tabindex="-1"
+	transition:fly={{ duration: 600, x: -50 }}
 >
 	<div class="flex flex-col gap-3 p-1">
 		<!-- <button class="flex aspect-square h-9 w-9 items-center justify-center text-text-3 duration-200">

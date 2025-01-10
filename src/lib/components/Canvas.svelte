@@ -854,7 +854,10 @@
 	}
 
 	function movePencil(curr: Point) {
-		if (strokePath.length > 0 && getSquaredDistance(curr, strokePath[strokePath.length - 1]) < 400)
+		if (
+			strokePath.length > 0 &&
+			getSquaredDistance(getLocalPoint(curr), getLocalPoint(strokePath[strokePath.length - 1])) < 50
+		)
 			return;
 
 		[min.x, max.x, min.y, max.y] = [

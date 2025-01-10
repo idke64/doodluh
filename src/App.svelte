@@ -18,6 +18,7 @@
 
 	import type { Point, Action, Object, Tool } from '$lib/types';
 	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
 
 	let { board, collaborators, tempObjects, loading = false } = $props();
 
@@ -121,28 +122,28 @@
 </BlurContainer>
 
 <main>
-	<div class="absolute left-4 top-4 flex w-[calc(100%-32px)] items-start justify-between gap-3">
-		<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
-			<BoardBar {board} {loading} />
-			<Collaborators others={collaborators.others} />
-		</div>
-		<Menu />
-	</div>
-	<div class="absolute bottom-4 right-4 flex gap-x-2">
-		<UndoRedoControl bind:actions bind:actionsIndex />
-		<ZoomControl bind:scale {changeScale} />
-	</div>
-	<div class="absolute bottom-4 left-4">
-		{#if board.id !== 'local'}
-			<a class="btn-secondary gap-x-2 self-start px-2 text-sm" href="/">
-				<Fa icon={faArrowLeft} /> Local board
-			</a>
-		{/if}
-	</div>
-	<Toolbar bind:tool />
 	{#if loading}
 		<LoadingPage />
 	{:else}
+		<div class="fixed-headers" transition:fly={{ duration: 600, y: -50 }}>
+			<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
+				<BoardBar {board} {loading} />
+				<Collaborators others={collaborators.others} />
+			</div>
+			<Menu />
+		</div>
+		<div class="fixed-footers" transition:fly={{ duration: 600, y: 50 }}>
+			{#if board.id !== 'local'}
+				<a class="btn-secondary gap-x-2 px-2" href="/">
+					<Fa icon={faArrowLeft} /> Local board
+				</a>
+			{/if}
+			<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
+				<UndoRedoControl bind:actions bind:actionsIndex />
+				<ZoomControl bind:scale {changeScale} />
+			</div>
+		</div>
+		<Toolbar bind:tool />
 		<Canvas
 			bind:tool
 			bind:isDrawing

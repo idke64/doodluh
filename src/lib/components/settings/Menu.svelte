@@ -15,7 +15,7 @@
 	import { theme } from '$lib/shared';
 	import { getContext } from 'svelte';
 	import type { User } from '$lib/server/database/schema';
-	import { scale } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { currModal } from '$lib/shared';
 
 	const user: User = getContext('user');

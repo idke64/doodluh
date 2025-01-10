@@ -64,6 +64,18 @@
 	.tooltip-right {
 		@apply whitespace-nowrap after:pointer-events-none after:absolute after:left-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-left after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-medium after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
 	}
+
+	.fixed-headers {
+		@apply absolute left-4 top-4 flex w-[calc(100%-32px)] items-start justify-between gap-3;
+	}
+
+	.fixed-footers {
+		@apply absolute bottom-4 left-4 flex w-[calc(100%-32px)] items-end justify-between gap-3;
+	}
+
+	.range {
+		@apply appearance-none border-transparent bg-transparent outline-none [&::-moz-range-thumb]:-mt-[5px] [&::-moz-range-thumb]:h-[15px] [&::-moz-range-thumb]:w-[15px] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-palette-cyan [&::-moz-range-thumb]:hover:bg-palette-cyan-dark [&::-moz-range-track]:h-[6px] [&::-moz-range-track]:bg-bg-1 [&::-webkit-slider-runnable-track]:h-[6px] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-bg-3 [&::-webkit-slider-thumb]:-mt-[5px] [&::-webkit-slider-thumb]:h-[15px] [&::-webkit-slider-thumb]:w-[15px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-palette-cyan [&::-webkit-slider-thumb]:hover:bg-palette-cyan-dark;
+	}
 }
 
 @layer base {

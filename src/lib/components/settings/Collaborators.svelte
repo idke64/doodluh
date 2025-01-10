@@ -4,6 +4,7 @@
 	// import { faFaceSmile, faSmile, faUser } from '@fortawesome/free-solid-svg-icons';
 	import { faFaceSmile } from '@fortawesome/free-regular-svg-icons';
 	import Fa from 'svelte-fa';
+	import { fly } from 'svelte/transition';
 
 	let { others } = $props();
 </script>

@@ -3,6 +3,7 @@
 	import { camelToTitleCase } from '$lib/utils';
 	import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 	import Fa from 'svelte-fa';
+	import { fly } from 'svelte/transition';
 
 	let { board, loading } = $props<{ board: Board; loading: boolean }>();
 </script>
