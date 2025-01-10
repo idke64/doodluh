@@ -31,13 +31,38 @@ export default {
 					'67%': { transform: 'rotate(0deg)' },
 					'83%': { transform: 'rotate(-9deg)' },
 					'100%': { transform: 'rotate(0deg)' }
+				},
+				load: {
+					'0%': {
+						transform: 'translate3d(-30px, 30px, 0) scale(1) rotate(0deg)',
+						opacity: '1'
+					},
+					'25%': {
+						transform: 'translate3d(30px, 30px, 0) scale(0.5) rotate(90deg)',
+						opacity: '0.75'
+					},
+					'50%': {
+						transform: 'translate3d(30px, -30px, 0) scale(1) rotate(180deg)',
+						opacity: '0.5'
+					},
+					'75%': {
+						transform: 'translate3d(-30px, -30px, 0) scale(0.5) rotate(270deg)',
+						opacity: '0.75'
+					},
+					'100%': {
+						transform: 'translate3d(-30px, 30px, 0) scale(1) rotate(360deg)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'gradient-text': 'gradient-text 12s infinite',
 				'spin-slow-1': 'spin-slow-1 350ms ease-in',
 				'spin-slow-2': 'spin-slow-2 350ms ease-out',
-				wiggle: 'wiggle 625ms ease-in-out'
+				wiggle: 'wiggle 625ms ease-in-out',
+				'load-1': 'load 1.5s infinite',
+				'load-2': 'load 1.5s infinite -500ms',
+				'load-3': 'load 1.5s infinite -1000ms'
 			},
 			boxShadow: {
 				DEFAULT: 'rgba(0, 0, 0, 0.27) 0px 0px 0.5rem'

@@ -8,12 +8,15 @@
 		ZoomControl,
 		UndoRedoControl,
 		BoardsModal,
-		BoardBar
+		BoardBar,
+		LoadingPage
 	} from '$lib/components';
 	import Collaborators from '$lib/components/settings/Collaborators.svelte';
-	import { boards, currModal } from '$lib/shared';
+	import Fa from 'svelte-fa';
+	import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+	import { currModal } from '$lib/shared';
 
-	import type { Point, Action, Object, Box, Tool } from '$lib/types';
+	import type { Point, Action, Object, Tool } from '$lib/types';
 	import { onMount } from 'svelte';
 
 	let { board, collaborators, tempObjects, loading = false } = $props();
@@ -49,13 +52,12 @@
 
 		if (key === 'Backspace' || key === 'Delete') {
 			if (collaborators.self.objectsSelectedIds.length > 0) {
+				const selectedSet = new Set(collaborators.self.objectsSelectedIds);
 				actions = [
 					...actions.slice(0, actionsIndex[0] + 1),
 					{
 						type: 'remove',
-						objects: board.objects.filter((object: Object) =>
-							collaborators.self.objectsSelectedIds.includes(object.id)
-						)
+						objects: board.objects.filter((object: Object) => selectedSet.has(object.id))
 					}
 				];
 				actionsIndex = [actions.length - 1, 0];
@@ -117,6 +119,7 @@
 		<BoardsModal {board} />
 	{/if}
 </BlurContainer>
+
 <main>
 	<div class="absolute left-4 top-4 flex w-[calc(100%-32px)] items-start justify-between gap-3">
 		<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
@@ -129,18 +132,29 @@
 		<UndoRedoControl bind:actions bind:actionsIndex />
 		<ZoomControl bind:scale {changeScale} />
 	</div>
+	<div class="absolute bottom-4 left-4">
+		{#if board.id !== 'local'}
+			<a class="btn-secondary gap-x-2 self-start px-2 text-sm" href="/">
+				<Fa icon={faArrowLeft} /> Local board
+			</a>
+		{/if}
+	</div>
 	<Toolbar bind:tool />
-	<Canvas
-		bind:tool
-		bind:isDrawing
-		bind:scale
-		bind:offset
-		bind:actions
-		bind:actionsIndex
-		{board}
-		{collaborators}
-		{tempObjects}
-	/>
+	{#if loading}
+		<LoadingPage />
+	{:else}
+		<Canvas
+			bind:tool
+			bind:isDrawing
+			bind:scale
+			bind:offset
+			bind:actions
+			bind:actionsIndex
+			{board}
+			{collaborators}
+			{tempObjects}
+		/>
+	{/if}
 </main>
 
 <svelte:window onkeydown={handleKeyDown} onkeyup={(e) => keysDown.delete(e.key)} />

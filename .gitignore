@@ -1,8 +1,8 @@
 node_modules
 **/.vscode/
 .svelte-kit
-.dist
-.build
+dist/
+build/
 
 .output
 .vercel

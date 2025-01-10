@@ -213,8 +213,6 @@
 	}
 
 	function drawCursors(): void {
-		if (collaborators.others.length == 0) return;
-
 		for (const other of collaborators.others) {
 			const localCursor = getLocalPoint(other.cursor);
 
@@ -441,10 +439,11 @@
 		start = getEventPoint(e);
 		[min.x, max.x, min.y, max.y] = [start.x, start.x, start.y, start.y];
 		erased = [];
-		strokePath = [{ x: start.x, y: start.y }];
 
 		if (tool == 'arrow') {
-			selectTopItem();
+			if (collaborators.self.objectsSelectedIds.length == 0) {
+				selectTopItem();
+			}
 			if (boxContainsPoint(collaborators.self.objectsSelectedBox, start)) {
 				isDragging = true;
 			} else {
@@ -797,31 +796,31 @@
 					}
 				}
 			});
+			const selectedSet = new Set(collaborators.self.objectsSelectedIds);
 
 			board.updateObjects(
-				board.objects.map((object: Object) => {
-					if (collaborators.self.objectsSelectedIds.includes(object.id)) {
-						if (object.type === 'line') {
-							return {
-								...object,
-								start: { x: object.start.x + diff.x, y: object.start.y + diff.y },
-								end: { x: object.end.x + diff.x, y: object.end.y + diff.y },
-								box: {
-									...object.box,
-									pos: { x: object.box.pos.x + diff.x, y: object.box.pos.y + diff.y }
+				board.objects
+					.filter((object: Object) => selectedSet.has(object.id))
+					.map((object: Object) => {
+						return {
+							...object,
+							start: {
+								x: object.start.x + diff.x,
+								y: object.start.y + diff.y
+							},
+							end: {
+								x: object.end.x + diff.x,
+								y: object.end.y + diff.y
+							},
+							box: {
+								...object.box,
+								pos: {
+									x: object.box.pos.x + diff.x,
+									y: object.box.pos.y + diff.y
 								}
-							};
-						} else {
-							return {
-								...object,
-								box: {
-									...object.box,
-									pos: { x: object.box.pos.x + diff.x, y: object.box.pos.y + diff.y }
-								}
-							};
-						}
-					}
-				})
+							}
+						};
+					})
 			);
 
 			start = curr;
@@ -855,7 +854,8 @@
 	}
 
 	function movePencil(curr: Point) {
-		if (getSquaredDistance(curr, strokePath[strokePath.length - 1]) < 400) return;
+		if (strokePath.length > 0 && getSquaredDistance(curr, strokePath[strokePath.length - 1]) < 400)
+			return;
 
 		[min.x, max.x, min.y, max.y] = [
 			Math.min(min.x, curr.x),
