@@ -63,7 +63,10 @@
 				];
 				actionsIndex = [actions.length - 1, 0];
 				board.deleteObjects(collaborators.self.objectsSelectedIds);
-				collaborators.updateSelf({ objectsSelectedIds: [] });
+				collaborators.updateSelf({
+					objectsSelectedIds: [],
+					objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+				});
 			}
 		}
 
@@ -133,12 +136,15 @@
 			<Menu />
 		</div>
 		<div class="fixed-footers" transition:fly={{ duration: 600, y: 50 }}>
-			{#if board.id !== 'local'}
-				<a class="btn-secondary gap-x-2 px-2" href="/">
-					<Fa icon={faArrowLeft} /> Local board
-				</a>
-			{/if}
-			<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
+			<a
+				class="btn-secondary gap-x-2 px-2 {board.id === 'local'
+					? 'pointer-events-none opacity-0'
+					: ''}"
+				href="/"
+			>
+				<Fa icon={faArrowLeft} /> Local board
+			</a>
+			<div class="flex items-center gap-3 self-end max-sm:flex-col max-sm:items-start">
 				<UndoRedoControl bind:actions bind:actionsIndex />
 				<ZoomControl bind:scale {changeScale} />
 			</div>

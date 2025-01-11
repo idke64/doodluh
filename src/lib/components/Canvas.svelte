@@ -98,7 +98,10 @@
 		if (actionsIndex[1] == 0) return;
 
 		untrack(() => {
-			collaborators.updateSelf({ objectsSelectedIds: [] });
+			collaborators.updateSelf({
+				objectsSelectedIds: [],
+				objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+			});
 
 			if (actionsIndex[1] == 1) {
 				switch (actions[actionsIndex[0]].type) {
@@ -415,8 +418,16 @@
 
 	function handleStart(e: MouseEvent | TouchEvent) {
 		if (e instanceof TouchEvent && e.touches.length >= 2) {
-			isPanZoom = true;
 			e.preventDefault();
+
+			if (strokePath.length > 2) {
+				return;
+			} else {
+				strokePath = [];
+			}
+
+			isPanZoom = true;
+
 			const rect = canvas.getBoundingClientRect();
 
 			const touches = Array.from(e.touches);
@@ -439,12 +450,14 @@
 		start = getEventPoint(e);
 		[min.x, max.x, min.y, max.y] = [start.x, start.x, start.y, start.y];
 		erased = [];
+		strokePath = [start];
 
 		if (tool == 'arrow') {
 			if (collaborators.self.objectsSelectedIds.length == 0) {
 				selectTopItem();
 			}
 			if (boxContainsPoint(collaborators.self.objectsSelectedBox, start)) {
+				console.log('yessir');
 				isDragging = true;
 			} else {
 				if (collaborators.self.objectsSelectedIds.length > 0) {
@@ -456,7 +469,10 @@
 			}
 		} else {
 			if (collaborators.self.objectsSelectedIds.length > 0) {
-				collaborators.updateSelf({ objectsSelectedIds: [] });
+				collaborators.updateSelf({
+					objectsSelectedIds: [],
+					objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+				});
 			}
 		}
 	}
@@ -470,7 +486,10 @@
 				const dist = Math.hypot(start.x - localStart.x, start.y - localStart.y);
 				const dist2 = Math.hypot(start.x - localEnd.x, start.y - localEnd.y);
 				if (dist < 100 || dist2 < 100) {
-					collaborators.updateSelf({ objectsSelectedIds: [object.id] });
+					collaborators.updateSelf({
+						objectsSelectedIds: [object.id],
+						objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+					});
 					return;
 				}
 			} else {
@@ -856,7 +875,7 @@
 	function movePencil(curr: Point) {
 		if (
 			strokePath.length > 0 &&
-			getSquaredDistance(getLocalPoint(curr), getLocalPoint(strokePath[strokePath.length - 1])) < 50
+			getSquaredDistance(getLocalPoint(curr), getLocalPoint(strokePath[strokePath.length - 1])) < 30
 		)
 			return;
 

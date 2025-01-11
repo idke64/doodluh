@@ -44,12 +44,12 @@ export function createLocalBoard() {
 
 		updateObjects(newObjects: Object[], emit: boolean = true) {
 			const updatedObjects = [...this.objects];
-			newObjects.forEach((obj) => {
-				const index = updatedObjects.findIndex((o) => o.id === obj.id);
+			newObjects.forEach((object) => {
+				const index = updatedObjects.findIndex((o) => o.id === object.id);
 				if (index !== -1) {
-					updatedObjects[index] = obj;
+					updatedObjects[index] = object;
 				} else {
-					updatedObjects.push(obj);
+					updatedObjects.push(object);
 				}
 			});
 			this.objects = updatedObjects;
