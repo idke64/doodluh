@@ -12,7 +12,7 @@
 >
 	<div class="flex flex-col gap-y-2">
 		<div class="aspect-video w-full overflow-hidden rounded-sm">
-			<div class="h-full w-full bg-cyan-400"></div>
+			<div class="h-full w-full bg-palette-cyan"></div>
 		</div>
 		<div class="gap-y-1">
 			<h6 class="line-clamp-1 text-start">{board.name}</h6>

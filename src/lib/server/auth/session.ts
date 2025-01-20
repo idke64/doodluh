@@ -64,7 +64,8 @@ export function setSessionTokenCookie(event: RequestEvent, token: string, expire
 		sameSite: 'lax',
 		expires: expiresAt,
 		path: '/',
-		secure: process.env.NODE_ENV === 'production'
+		secure: process.env.NODE_ENV === 'production',
+		domain: process.env.NODE_ENV === 'production' ? process.env.PARENT_DOMAIN : undefined
 	});
 }
 
@@ -74,7 +75,8 @@ export function deleteSessionTokenCookie(event: RequestEvent): void {
 		sameSite: 'lax',
 		maxAge: 0,
 		path: '/',
-		secure: process.env.NODE_ENV === 'production'
+		secure: process.env.NODE_ENV === 'production',
+		domain: process.env.NODE_ENV === 'production' ? process.env.PARENT_DOMAIN : undefined
 	});
 }
 

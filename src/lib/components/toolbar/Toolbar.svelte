@@ -57,7 +57,7 @@
 </script>
 
 <div
-	class="absolute left-4 top-1/2 z-10 flex -translate-y-1/2 select-none flex-col items-center justify-center rounded bg-bg-2 shadow"
+	class="z-10 flex select-none flex-col items-center justify-center rounded bg-bg-2 shadow"
 	role="toolbar"
 	tabindex="-1"
 	transition:fly={{ duration: 600, x: -50 }}

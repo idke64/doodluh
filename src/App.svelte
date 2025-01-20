@@ -13,7 +13,7 @@
 	} from '$lib/components';
 	import Collaborators from '$lib/components/settings/Collaborators.svelte';
 	import Fa from 'svelte-fa';
-	import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+	import { faArrowRotateBack, faHouse } from '@fortawesome/free-solid-svg-icons';
 	import { currModal } from '$lib/shared';
 
 	import type { Point, Action, Object, Tool } from '$lib/types';
@@ -139,17 +139,20 @@
 			<a
 				class="btn-secondary gap-x-2 px-2 {board.id === 'local'
 					? 'pointer-events-none opacity-0'
-					: ''}"
+					: 'tooltip-top'}"
 				href="/"
+				style="--label: 'Local board'"
 			>
-				<Fa icon={faArrowLeft} /> Local board
+				<Fa icon={faHouse} />
 			</a>
-			<div class="flex items-center gap-3 self-end max-sm:flex-col max-sm:items-start">
+			<div class="flex items-center gap-3 self-end max-sm:items-start">
 				<UndoRedoControl bind:actions bind:actionsIndex />
 				<ZoomControl bind:scale {changeScale} />
 			</div>
 		</div>
-		<Toolbar bind:tool />
+		<div class="fixed-left">
+			<Toolbar bind:tool />
+		</div>
 		<Canvas
 			bind:tool
 			bind:isDrawing

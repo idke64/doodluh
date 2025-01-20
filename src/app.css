@@ -50,19 +50,19 @@
 	}
 
 	.tooltip-top {
-		@apply whitespace-nowrap after:pointer-events-none after:absolute after:bottom-[calc(100%+12px)] after:left-1/2 after:z-10 after:flex after:h-8 after:origin-bottom after:-translate-x-1/2 after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-medium after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
+		@apply whitespace-nowrap after:pointer-events-none after:absolute after:bottom-[calc(100%+12px)] after:left-1/2 after:z-10 after:flex after:h-8 after:origin-bottom after:-translate-x-1/2 after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-[450] after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
 	}
 
 	.tooltip-bottom {
-		@apply after:pointer-events-none after:absolute after:left-1/2 after:top-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-top after:-translate-x-1/2 after:scale-95 after:cursor-default after:items-center after:justify-center after:whitespace-nowrap after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-center after:text-xs after:font-medium after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
+		@apply after:pointer-events-none after:absolute after:left-1/2 after:top-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-top after:-translate-x-1/2 after:scale-95 after:cursor-default after:items-center after:justify-center after:whitespace-nowrap after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-center after:text-xs after:font-[450] after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
 	}
 
 	.tooltip-left {
-		@apply whitespace-nowrap after:pointer-events-none after:absolute after:right-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-right after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-medium after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
+		@apply whitespace-nowrap after:pointer-events-none after:absolute after:right-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-right after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-[450] after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
 	}
 
 	.tooltip-right {
-		@apply whitespace-nowrap after:pointer-events-none after:absolute after:left-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-left after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-medium after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
+		@apply whitespace-nowrap after:pointer-events-none after:absolute after:left-[calc(100%+12px)] after:z-10 after:flex after:h-8 after:origin-left after:scale-95 after:cursor-default after:items-center after:justify-center after:rounded after:bg-bg-2 after:px-2 after:py-1.5 after:text-xs after:font-[450] after:text-text-3 after:opacity-0 after:shadow after:duration-200 after:content-[--label] hover:after:scale-100 hover:after:opacity-100;
 	}
 
 	.fixed-headers {
@@ -71,6 +71,10 @@
 
 	.fixed-footers {
 		@apply absolute bottom-4 left-4 flex w-[calc(100%-32px)] items-end justify-between gap-3;
+	}
+
+	.fixed-left {
+		@apply absolute left-4 top-1/2 flex -translate-y-1/2 transform items-center justify-center gap-3;
 	}
 
 	.range {

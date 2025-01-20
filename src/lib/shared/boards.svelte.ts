@@ -19,6 +19,15 @@ export let boards = $state({
 			});
 		}
 	},
+	updateBoard(boardId: string, updates: Partial<BoardModel>) {
+		const updatedBoards = this.items.map((boardModel) => {
+			if (boardModel.id === boardId) {
+				return { ...boardModel, ...updates };
+			}
+			return boardModel;
+		});
+		this.items = updatedBoards;
+	},
 	delete(boardModelId: string) {
 		const updatedBoards = this.items.filter((boardModel) => boardModel.id !== boardModelId);
 		this.items = updatedBoards;
@@ -30,7 +39,6 @@ export let boards = $state({
 			} else {
 				const boardModels = await fetch('/api/boards');
 				const json = await boardModels.json();
-				console.log(json);
 				this.items = json;
 			}
 		}

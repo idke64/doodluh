@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Board, Object, Collaborator, TransportObject } from '$lib/types';
 import { objectToTransport, throttle, transportToObject } from '$lib/utils';
 import { PUBLIC_SOCKET_URL } from '$env/static/public';
+import { boards } from './boards.svelte';
 
 const defaultBoard: Board = {
 	id: uuidv4(),
@@ -172,6 +173,7 @@ export function createRealtimeBoard(boardId: string) {
 
 		socket.on('board_updated', (updates: Partial<Board>) => {
 			board.update(updates, false);
+			boards.updateBoard(board.id, updates);
 		});
 
 		socket.on('objects_updated', (newObjects: TransportObject[]) => {
@@ -201,7 +203,6 @@ export function createRealtimeBoard(boardId: string) {
 		});
 
 		socket.on('user_join', (collaborator: Collaborator) => {
-			console.log('hello');
 			collaborators.updateOther(collaborator.id, collaborator);
 		});
 
@@ -209,7 +210,6 @@ export function createRealtimeBoard(boardId: string) {
 			const leavingCollaborator = collaborators.others.find((collaborator) => {
 				return collaborator.id === collaboratorId;
 			});
-			console.log(`${leavingCollaborator!.name} Left`);
 			collaborators.deleteOther(collaboratorId);
 		});
 

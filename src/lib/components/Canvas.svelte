@@ -62,10 +62,10 @@
 
 		handleResize();
 
-		canvas.addEventListener('touchstart', handleStart, { passive: false });
-		canvas.addEventListener('touchmove', handleMove, { passive: false });
-		canvas.addEventListener('touchend', handleStop, { passive: false });
-		canvas.addEventListener('touchcancel', handleStop, { passive: false });
+		window.addEventListener('touchstart', handleStart, { passive: false });
+		window.addEventListener('touchmove', handleMove, { passive: false });
+		window.addEventListener('touchend', handleStop, { passive: false });
+		window.addEventListener('touchcancel', handleStop, { passive: false });
 		window.addEventListener('resize', handleResize);
 
 		return () => {
@@ -417,8 +417,17 @@
 	let isDragging = false;
 
 	function handleStart(e: MouseEvent | TouchEvent) {
+		const target = e.target as HTMLElement;
+		if (!canvas.contains(target)) {
+			return;
+		}
 		if (e instanceof TouchEvent && e.touches.length >= 2) {
 			e.preventDefault();
+
+			collaborators.updateSelf({
+				objectsSelectedIds: [],
+				objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
+			});
 
 			if (strokePath.length > 2) {
 				return;
@@ -453,11 +462,8 @@
 		strokePath = [start];
 
 		if (tool == 'arrow') {
-			if (collaborators.self.objectsSelectedIds.length == 0) {
-				selectTopItem();
-			}
+			selectTopItem();
 			if (boxContainsPoint(collaborators.self.objectsSelectedBox, start)) {
-				console.log('yessir');
 				isDragging = true;
 			} else {
 				if (collaborators.self.objectsSelectedIds.length > 0) {
@@ -480,31 +486,16 @@
 	function selectTopItem(): void {
 		for (let i = board.objects.length - 1; i >= 0; i--) {
 			const object = board.objects[i];
-			if (object.type === 'line') {
-				const localStart = getLocalPoint(object.start);
-				const localEnd = getLocalPoint(object.end);
-				const dist = Math.hypot(start.x - localStart.x, start.y - localStart.y);
-				const dist2 = Math.hypot(start.x - localEnd.x, start.y - localEnd.y);
-				if (dist < 100 || dist2 < 100) {
-					collaborators.updateSelf({
-						objectsSelectedIds: [object.id],
-						objectsSelectedBox: { rotation: 0, pos: { x: 0, y: 0 }, width: 0, height: 0 }
-					});
-					return;
-				}
-			} else {
-				if (
-					start.x >= object.box.pos.x &&
-					start.x <= object.box.pos.x + object.box.width &&
-					start.y >= object.box.pos.y &&
-					start.y <= object.box.pos.y + object.box.height
-				) {
-					collaborators.updateSelf({
-						objectsSelectedIds: [object.id],
-						objectsSelectedBox: object.box
-					});
-					return;
-				}
+
+			if (
+				boxContainsPoint(object.box, start) &&
+				collaborators.self.objectsSelectedIds.indexOf(object.id) == -1
+			) {
+				collaborators.updateSelf({
+					objectsSelectedIds: [object.id],
+					objectsSelectedBox: object.box
+				});
+				return;
 			}
 		}
 	}
@@ -525,10 +516,8 @@
 			const dist =
 				(touches[1].clientX - touches[0].clientX) ** 2 +
 				(touches[1].clientY - touches[0].clientY) ** 2;
-			const newScale = Math.max(
-				scale + ((initialGesture.scale * dist) / initialGesture.distance - scale) * 0.5,
-				0.01
-			);
+			const scaleDelta = (initialGesture.scale * dist) / initialGesture.distance - scale;
+			const newScale = Math.max(scale + scaleDelta * 0.3, 0.01);
 
 			const midpoint = {
 				x: ((touches[0].clientX + touches[1].clientX) / 2 - rect.left) * dpr,

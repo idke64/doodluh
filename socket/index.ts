@@ -88,8 +88,6 @@ io.on('connection', async (socket) => {
 
 	activeCollaborators.get(boardId)!.push(collaborator);
 
-	console.log('Client connected:', socket.id);
-
 	socket.on('update_board', (updates: Partial<Board>) => {
 		socket.broadcast.to(boardId).emit('board_updated', updates);
 
@@ -146,7 +144,6 @@ io.on('connection', async (socket) => {
 	});
 
 	socket.on('disconnect', async () => {
-		console.log('Client disconnected:', socket.id);
 		activeCollaborators.set(
 			boardId,
 			(activeCollaborators.get(boardId) || []).filter((c) => c.id !== socket.id)

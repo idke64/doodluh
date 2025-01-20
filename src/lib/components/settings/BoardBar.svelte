@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { Board } from '$lib/types';
 	import { camelToTitleCase } from '$lib/utils';
-	import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-	import Fa from 'svelte-fa';
-	import { fly } from 'svelte/transition';
 
 	let { board, loading } = $props<{ board: Board; loading: boolean }>();
 </script>
@@ -16,7 +13,7 @@
 			{:else if board?.thumbnail}
 				<img src={board.thumbnail} alt="thumbnail" class="h-full w-full" />
 			{:else}
-				<div class="h-full w-full bg-bg-3"></div>
+				<div class="h-full w-full bg-palette-cyan"></div>
 			{/if}
 		</div>
 		<div class="flex w-full flex-col">
