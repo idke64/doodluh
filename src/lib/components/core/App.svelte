@@ -13,12 +13,14 @@
 	} from '$lib/components';
 	import Collaborators from '$lib/components/settings/Collaborators.svelte';
 	import Fa from 'svelte-fa';
-	import { faArrowRotateBack, faHouse } from '@fortawesome/free-solid-svg-icons';
+	import { faHouse } from '@fortawesome/free-solid-svg-icons';
 	import { currModal } from '$lib/shared';
+	import { v4 as uuidv4 } from 'uuid';
 
 	import type { Point, Action, Object, Tool } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
+	import { getBoxCorners, objectToTransport } from '$lib/utils';
 
 	let { board, collaborators, tempObjects, loading = false } = $props();
 
@@ -42,7 +44,10 @@
 		};
 	});
 
-	function handleKeyDown(e: KeyboardEvent) {
+	async function handleKeyDown(e: KeyboardEvent) {
+		const activeTag = document.activeElement?.tagName;
+		if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
 		const key = e.key;
 		keysDown.add(key);
 		if (key >= '1' && key <= '7' && !isDrawing) {
@@ -71,6 +76,83 @@
 		}
 
 		if (keysDown.has('Control')) {
+			if (key === 'c') {
+				const selectedSet = new Set(collaborators.self.objectsSelectedIds);
+				await navigator.clipboard.writeText(
+					JSON.stringify(board.objects.filter((object: Object) => selectedSet.has(object.id)))
+				);
+			}
+			if (key == 'v') {
+				const text = await navigator.clipboard.readText();
+				let parsed;
+				try {
+					parsed = JSON.parse(text);
+				} catch (err) {
+					return;
+				}
+				if (Array.isArray(parsed) && parsed.every((item) => item && typeof item === 'object')) {
+					const selectedBox = collaborators.self.objectsSelectedBox;
+					const cursor = collaborators.self.cursor;
+
+					let originalTopLeft: Point = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
+
+					parsed.forEach((object: Object) => {
+						const corners: Point[] = getBoxCorners(object.box);
+						corners.forEach((corner) => {
+							originalTopLeft = {
+								x: Math.min(originalTopLeft.x, corner.x),
+								y: Math.min(originalTopLeft.y, corner.y)
+							};
+						});
+					});
+
+					const updatedObjects = parsed.map((obj) => ({
+						...obj,
+						zIndex: obj.zIndex + 1,
+						id: uuidv4(),
+						box:
+							selectedBox.height > 0 && selectedBox.width > 0
+								? {
+										...obj.box,
+										pos: {
+											x: obj.box.pos.x - originalTopLeft.x + selectedBox.pos.x + 50 / scale,
+											y: obj.box.pos.y - originalTopLeft.y + selectedBox.pos.y + 50 / scale
+										}
+									}
+								: {
+										...obj.box,
+										pos: { x: cursor.x - obj.box.width / 2, y: cursor.y - obj.box.height / 2 }
+									}
+					}));
+					let topLeft: Point = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
+					let bottomRight: Point = { x: 0, y: 0 };
+
+					updatedObjects.forEach((object: Object) => {
+						const corners: Point[] = getBoxCorners(object.box);
+						corners.forEach((corner) => {
+							topLeft = {
+								x: Math.min(topLeft.x, corner.x),
+								y: Math.min(topLeft.y, corner.y)
+							};
+							bottomRight = {
+								x: Math.max(bottomRight.x, corner.x),
+								y: Math.max(bottomRight.y, corner.y)
+							};
+						});
+					});
+
+					collaborators.updateSelf({
+						objectsSelectedIds: updatedObjects.map((object: Object) => object.id),
+						objectsSelectedBox: {
+							pos: topLeft,
+							width: bottomRight.x - topLeft.x,
+							height: bottomRight.y - topLeft.y,
+							rotation: 0
+						}
+					});
+					board.updateObjects(updatedObjects);
+				}
+			}
 			if (key === 'z') {
 				e.preventDefault();
 				if (actionsIndex[0] > -1) {
@@ -128,14 +210,16 @@
 	{#if loading}
 		<LoadingPage />
 	{:else}
-		<div class="fixed-headers" transition:fly={{ duration: 600, y: -50 }}>
+		<div class="fixed-headers-start" transition:fly={{ duration: 600, y: -50 }}>
 			<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
 				<BoardBar {board} {loading} />
 				<Collaborators others={collaborators.others} />
 			</div>
+		</div>
+		<div class="fixed-headers-end" transition:fly={{ duration: 600, y: -50 }}>
 			<Menu />
 		</div>
-		<div class="fixed-footers" transition:fly={{ duration: 600, y: 50 }}>
+		<div class="fixed-footers-start" transition:fly={{ duration: 600, y: 50 }}>
 			<a
 				class="btn-secondary gap-x-2 px-2 {board.id === 'local'
 					? 'pointer-events-none opacity-0'
@@ -145,11 +229,14 @@
 			>
 				<Fa icon={faHouse} />
 			</a>
+		</div>
+		<div class="fixed-footers-end" transition:fly={{ duration: 600, y: 50 }}>
 			<div class="flex items-center gap-3 self-end max-sm:items-start">
 				<UndoRedoControl bind:actions bind:actionsIndex />
 				<ZoomControl bind:scale {changeScale} />
 			</div>
 		</div>
+
 		<div class="fixed-left">
 			<Toolbar bind:tool />
 		</div>

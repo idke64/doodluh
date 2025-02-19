@@ -32,6 +32,8 @@
 	let ctxTemp: CanvasRenderingContext2D;
 	let ctxOutline: CanvasRenderingContext2D;
 
+	let textInput: HTMLTextAreaElement;
+
 	let dpr = $derived(devicePixelRatio.current!);
 
 	let canvasWidth = $derived(innerWidth.current! * dpr);
@@ -106,12 +108,15 @@
 			if (actionsIndex[1] == 1) {
 				switch (actions[actionsIndex[0]].type) {
 					case 'add':
-						board.updateObjects(...actions[actionsIndex[0]].objects);
+						board.updateObjects(actions[actionsIndex[0]].objects);
 						break;
 					case 'remove':
 						board.deleteObjects(
 							actions[actionsIndex[0]].objects.map((object: Object) => object.id)
 						);
+						break;
+					case 'update':
+						board.updateObjects(actions[actionsIndex[0]].updatedObjects);
 						break;
 				}
 			} else {
@@ -123,6 +128,9 @@
 
 						break;
 					case 'remove':
+						board.updateObjects(actions[actionsIndex[0] + 1].objects);
+						break;
+					case 'update':
 						board.updateObjects(actions[actionsIndex[0] + 1].objects);
 						break;
 				}
@@ -461,10 +469,23 @@
 		erased = [];
 		strokePath = [start];
 
-		if (tool == 'arrow') {
+		if (tool === 'arrow') {
 			selectTopItem();
 			if (boxContainsPoint(collaborators.self.objectsSelectedBox, start)) {
 				isDragging = true;
+				actions = [
+					...actions.slice(0, actionsIndex[0] + 1),
+					{
+						type: 'update',
+						objects: board.objects.filter((object: Object) =>
+							collaborators.self.objectsSelectedIds.includes(object.id)
+						),
+						updatedObjects: board.objects.filter((object: Object) =>
+							collaborators.self.objectsSelectedIds.includes(object.id)
+						)
+					}
+				];
+				actionsIndex = [actionsIndex[0] + 1, 0];
 			} else {
 				if (collaborators.self.objectsSelectedIds.length > 0) {
 					collaborators.updateSelf({
@@ -487,24 +508,22 @@
 		for (let i = board.objects.length - 1; i >= 0; i--) {
 			const object = board.objects[i];
 
-			if (
-				boxContainsPoint(object.box, start) &&
-				collaborators.self.objectsSelectedIds.indexOf(object.id) == -1
-			) {
-				collaborators.updateSelf({
-					objectsSelectedIds: [object.id],
-					objectsSelectedBox: object.box
-				});
-				return;
+			if (boxContainsPoint(object.box, start)) {
+				if (collaborators.self.objectsSelectedIds.indexOf(object.id) == -1) {
+					collaborators.updateSelf({
+						objectsSelectedIds: [object.id],
+						objectsSelectedBox: object.box
+					});
+				}
+				break;
 			}
 		}
 	}
 	function handleMove(e: MouseEvent | TouchEvent) {
 		collaborators.updateSelf({ cursor: getEventPoint(e) });
 
-		if (e instanceof TouchEvent && e.touches.length >= 2) {
-			handleStop(e);
-
+		if (e instanceof TouchEvent && e.touches.length >= 2 && isPanZoom) {
+			handleStop(e, false);
 			e.preventDefault();
 
 			ctxTemp.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -517,7 +536,10 @@
 				(touches[1].clientX - touches[0].clientX) ** 2 +
 				(touches[1].clientY - touches[0].clientY) ** 2;
 			const scaleDelta = (initialGesture.scale * dist) / initialGesture.distance - scale;
-			const newScale = Math.max(scale + scaleDelta * 0.3, 0.01);
+			const zoomInDamping = 0.05;
+			const zoomOutDamping = 0.11;
+			const dampingFactor = scaleDelta > 0 ? zoomInDamping : zoomOutDamping;
+			const newScale = Math.max(scale + scaleDelta * dampingFactor, 0.01);
 
 			const midpoint = {
 				x: ((touches[0].clientX + touches[1].clientX) / 2 - rect.left) * dpr,
@@ -806,30 +828,33 @@
 			});
 			const selectedSet = new Set(collaborators.self.objectsSelectedIds);
 
-			board.updateObjects(
-				board.objects
-					.filter((object: Object) => selectedSet.has(object.id))
-					.map((object: Object) => {
-						return {
-							...object,
-							start: {
-								x: object.start.x + diff.x,
-								y: object.start.y + diff.y
-							},
-							end: {
-								x: object.end.x + diff.x,
-								y: object.end.y + diff.y
-							},
-							box: {
-								...object.box,
-								pos: {
-									x: object.box.pos.x + diff.x,
-									y: object.box.pos.y + diff.y
-								}
+			const updatedObjects = board.objects
+				.filter((object: Object) => selectedSet.has(object.id))
+				.map((object: Object) => {
+					return {
+						...object,
+						start: {
+							x: object.start.x + diff.x,
+							y: object.start.y + diff.y
+						},
+						end: {
+							x: object.end.x + diff.x,
+							y: object.end.y + diff.y
+						},
+						box: {
+							...object.box,
+							pos: {
+								x: object.box.pos.x + diff.x,
+								y: object.box.pos.y + diff.y
 							}
-						};
-					})
-			);
+						}
+					};
+				});
+			board.updateObjects(updatedObjects);
+
+			if (actions.length > 0) {
+				actions[actionsIndex[0]].updatedObjects = updatedObjects;
+			}
 
 			start = curr;
 			return;
@@ -863,10 +888,10 @@
 
 	function movePencil(curr: Point) {
 		if (
-			strokePath.length > 0 &&
 			getSquaredDistance(getLocalPoint(curr), getLocalPoint(strokePath[strokePath.length - 1])) < 30
-		)
+		) {
 			return;
+		}
 
 		[min.x, max.x, min.y, max.y] = [
 			Math.min(min.x, curr.x),
@@ -1036,22 +1061,7 @@
 	function createText(curr: Point) {
 		const { fontSize, color, opacity, fontFamily, useContrast } = toolSettings.text;
 
-		ctxTemp.clearRect(0, 0, canvasWidth, canvasHeight);
-
-		ctxTemp.save();
-
-		ctxTemp.font = `${fontSize * scale}px ${fontFamily}`;
-		ctxTemp.fillStyle = getThemeAwareColor(color, useContrast, $theme);
-		ctxTemp.strokeStyle = getThemeAwareColor(color, useContrast, $theme);
-
-		ctxTemp.globalAlpha = opacity / 100;
-
-		const localStart = getLocalPoint(start);
-		const localCurr = getLocalPoint({ x: curr.x, y: curr.y });
-
-		ctxTemp.fillText('Text', localCurr.x, localCurr.y);
-
-		ctxTemp.restore();
+		textInput.focus();
 	}
 
 	function moveHand(curr: Point) {
@@ -1098,12 +1108,11 @@
 	function resetDrawingState(): void {
 		isDrawing = false;
 		isDragging = false;
-		isPanZoom = false;
 		[start.x, start.y] = [0, 0];
 		strokePath = [];
 	}
 
-	function handleStop(e: MouseEvent | TouchEvent) {
+	function handleStop(e: MouseEvent | TouchEvent, resetPanZoom: boolean = true) {
 		const curr = getEventPoint(e);
 
 		if (!isDrawing) {
@@ -1171,16 +1180,18 @@
 				board.updateObjects([currItem]);
 				break;
 			case 'text':
+				createText(curr);
 				break;
 			case 'hand':
 				break;
 		}
 
+		if (resetPanZoom) isPanZoom = false;
 		resetDrawingState();
 	}
 
 	function handleZoom(zoom: number, center: Point) {
-		const newScale = Math.max(scale * zoom, 0.01);
+		const newScale = Math.max(scale * zoom, 0.1);
 
 		offset = {
 			x: center.x - (center.x - offset.x) * (newScale / scale),
@@ -1229,10 +1240,16 @@
 <div class="relative -z-10 h-full w-full">
 	<canvas
 		bind:this={canvas}
-		class={`absolute z-30 ${tool === 'pencil' || tool === 'shapes' || tool === 'line' ? 'cursor-crosshair' : tool === 'hand' ? 'cursor-grab' : tool === 'text' ? 'cursor-text' : 'cursor-auto'} ${'background-color-' + board.backgroundColor}`}
+		class={`absolute z-20 ${tool === 'pencil' || tool === 'shapes' || tool === 'line' ? 'cursor-crosshair' : tool === 'hand' ? 'cursor-grab' : tool === 'text' ? 'cursor-text' : 'cursor-auto'} ${'background-color-' + board.backgroundColor}`}
+		onwheel={handleWheel}
 	></canvas>
-	<canvas bind:this={canvasOutline} class="pointer-events-none absolute z-50"></canvas>
-	<canvas bind:this={canvasTemp} class="pointer-events-none absolute z-40"></canvas>
+	<canvas bind:this={canvasOutline} class="pointer-events-none absolute z-40"></canvas>
+	<canvas bind:this={canvasTemp} class="pointer-events-none absolute z-30"></canvas>
+	<textarea
+		bind:this={textInput}
+		class="absolute z-50 hidden min-h-[1em] min-w-[1ch] resize-none overflow-hidden whitespace-nowrap border-none bg-transparent p-0 outline-none"
+	>
+	</textarea>
 </div>
 
 <svelte:window
@@ -1240,5 +1257,4 @@
 	onmousemove={handleMove}
 	onmouseup={handleStop}
 	onmouseleave={handleStop}
-	onwheel={handleWheel}
 />

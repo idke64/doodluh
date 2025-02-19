@@ -14,7 +14,10 @@
 		>
 			<Fa icon={faPlus} />
 		</button>
-		<span class="flex w-10 items-center justify-center text-text-3">{Math.round(scale * 100)}%</span
+		<button
+			onclick={() => changeScale(1 - scale)}
+			class="tooltip-top relative flex h-8 w-10 items-center justify-center text-text-3"
+			style="--label: 'Reset'">{Math.round(scale * 100)}%</button
 		>
 		<button
 			class="btn-icon tooltip-top"

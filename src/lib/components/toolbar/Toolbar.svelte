@@ -54,6 +54,11 @@
 	}
 
 	let vertical = $state(true);
+
+	$effect(() => {
+		tool;
+		selectedSettings = '';
+	});
 </script>
 
 <div

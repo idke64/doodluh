@@ -11,7 +11,7 @@
 			{#if loading}
 				<div class="h-full w-full animate-pulse rounded-sm bg-bg-3"></div>
 			{:else if board?.thumbnail}
-				<img src={board.thumbnail} alt="thumbnail" class="h-full w-full" />
+				<img src={board.thumbnail} alt="thumbnail" class=" h-full w-full scale-[2]" />
 			{:else}
 				<div class="h-full w-full bg-palette-cyan"></div>
 			{/if}

@@ -1,8 +1,8 @@
 import { error, json, type RequestEvent, type RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/database/db';
-import type { Board } from '$lib/types';
-import { boards, objects, type BoardModel } from '$lib/server/database/schema';
+import { boards, type BoardModel } from '$lib/server/database/schema';
 import { eq } from 'drizzle-orm';
+import { generateRandomSeed } from '$lib/utils';
 
 export const GET: RequestHandler = async (event: RequestEvent): Promise<Response> => {
 	const { user } = event.locals;
@@ -25,10 +25,15 @@ export const GET: RequestHandler = async (event: RequestEvent): Promise<Response
 export const POST: RequestHandler = async (event: RequestEvent): Promise<Response> => {
 	const { user } = event.locals;
 
+	if (user == null) {
+		throw error(401, 'Unauthorized');
+	}
+
 	try {
 		const newBoard: BoardModel = await event.request.json();
 
-		console.log(newBoard);
+		const randomSeed = generateRandomSeed();
+		let identicon = `https://api.dicebear.com/9.x/icons/svg?seed=${randomSeed}&scale=50`;
 
 		await db.insert(boards).values({
 			id: newBoard.id,
@@ -37,15 +42,13 @@ export const POST: RequestHandler = async (event: RequestEvent): Promise<Respons
 			grid: newBoard.grid,
 			visibility: user != null ? 'public' : newBoard.visibility,
 			userId: user?.id || null,
-			thumbnail: newBoard.thumbnail ?? null,
+			thumbnail: newBoard.thumbnail ?? identicon,
 			createdAt: new Date(newBoard.createdAt),
 			updatedAt: new Date(newBoard.updatedAt)
 		});
 
 		return json({ status: 201 });
 	} catch (err) {
-		console.log(err);
-
 		error(500, 'Failed to create board');
 	}
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createRealtimeBoard } from '$lib/shared';
-	import App from '../../../App.svelte';
+	import { App } from '$lib/components';
 	import { page } from '$app/state';
 	import { ErrorPage } from '$lib/components';
 

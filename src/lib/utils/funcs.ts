@@ -119,3 +119,9 @@ export const throttle = <T extends (...args: any[]) => void>(fn: T, delay: numbe
 		}
 	};
 };
+
+export const generateRandomSeed = (length: number = 8): string => {
+	return Math.random()
+		.toString(36)
+		.substring(2, 2 + length);
+};

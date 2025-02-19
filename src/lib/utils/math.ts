@@ -126,3 +126,38 @@ function projectPolygon(poly: Point[], axis: Point): [number, number] {
 	const dots = poly.map((p) => p.x * axis.x + p.y * axis.y);
 	return [Math.min(...dots), Math.max(...dots)];
 }
+
+function PerpendicularDistance(point: Point, line: Edge): number {
+	const a = line.start.x - line.end.x;
+	const b = -(line.start.y - line.end.y);
+	const c = a * line.start.x + b * line.start.y;
+
+	const dist = Math.abs(a * point.x + b * point.y + c) / Math.sqrt(a * a + b * b);
+	return dist;
+}
+
+export const DouglasPeuker = (points: Point[], epsilon: number): Point[] => {
+	let maxDist = -1;
+	let index = 0;
+	const edge: Edge = { start: points[0], end: points[points.length - 1] };
+	for (let i = 1; i < points.length - 1; i++) {
+		const dist = PerpendicularDistance(points[i], edge);
+		if (dist > maxDist) {
+			index = i;
+			maxDist = dist;
+		}
+	}
+
+	let newPoints: Point[] = [];
+
+	if (maxDist > epsilon) {
+		const newPoints1: Point[] = DouglasPeuker(points.slice(0, index), epsilon);
+		const newPoints2: Point[] = DouglasPeuker(points.slice(index), epsilon);
+
+		newPoints = [...newPoints1.slice(0, -1), ...newPoints2];
+	} else {
+		newPoints = [points[0], points[points.length - 1]];
+	}
+
+	return newPoints;
+};

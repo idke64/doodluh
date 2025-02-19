@@ -77,6 +77,7 @@
 </script>
 
 <div
+	onwheel={(e) => e.stopPropagation()}
 	class="pointer-events-auto w-[min(1000px,95%)] translate-y-2 rounded bg-bg-2 p-8"
 	transition:scale={{ duration: 300, start: 0.95 }}
 >
