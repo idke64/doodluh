@@ -26,7 +26,7 @@ const io = new Server(server, {
 });
 
 const redisClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
-await redisClient.connect();
+redisClient.connect();
 
 async function getCollaborators(boardId: string): Promise<Collaborator[]> {
 	const data = await redisClient.get(`board:${boardId}:collaborators`);
