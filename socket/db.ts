@@ -3,7 +3,7 @@ import { boards, objects } from '../src/lib/server/database/schema';
 import { eq, inArray } from 'drizzle-orm';
 import type { Board } from '../src/lib/types';
 
-export async function setBoard(board: Board) {
+export async function updateBoard(board: Board) {
 	try {
 		await db.transaction(async (tx) => {
 			const existingObjects = await tx.query.objects.findMany({

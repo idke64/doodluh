@@ -537,9 +537,9 @@
 				(touches[1].clientY - touches[0].clientY) ** 2;
 			const scaleDelta = (initialGesture.scale * dist) / initialGesture.distance - scale;
 			const zoomInDamping = 0.05;
-			const zoomOutDamping = 0.11;
+			const zoomOutDamping = 0.2;
 			const dampingFactor = scaleDelta > 0 ? zoomInDamping : zoomOutDamping;
-			const newScale = Math.max(scale + scaleDelta * dampingFactor, 0.01);
+			const newScale = Math.max(scale + scaleDelta * dampingFactor, 0.1);
 
 			const midpoint = {
 				x: ((touches[0].clientX + touches[1].clientX) / 2 - rect.left) * dpr,
@@ -877,7 +877,7 @@
 
 		ctxTemp.rect(localStart.x, localStart.y, width, height);
 		ctxTemp.stroke();
-		ctxTemp.globalAlpha = 0.1;
+		ctxTemp.globalAlpha = 0.09;
 		ctxTemp.fillStyle = '#00c864';
 		ctxTemp.fill();
 
@@ -1113,6 +1113,9 @@
 	}
 
 	function handleStop(e: MouseEvent | TouchEvent, resetPanZoom: boolean = true) {
+		if (resetPanZoom) {
+			handleMove(e);
+		}
 		const curr = getEventPoint(e);
 
 		if (!isDrawing) {
@@ -1128,7 +1131,6 @@
 			case 'arrow':
 				break;
 			case 'pencil':
-				strokePath.push({ x: curr.x, y: curr.y });
 				if (strokePath.length == 1 && isPanZoom) break;
 				currItem = getItem(curr);
 				actions = [

@@ -17,7 +17,7 @@
 	import { currModal } from '$lib/shared';
 	import { v4 as uuidv4 } from 'uuid';
 
-	import type { Point, Action, Object, Tool } from '$lib/types';
+	import type { Point, Action, Object, Tool, Box } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { getBoxCorners, objectToTransport } from '$lib/utils';
@@ -82,8 +82,9 @@
 					JSON.stringify(board.objects.filter((object: Object) => selectedSet.has(object.id)))
 				);
 			}
-			if (key == 'v') {
+			if (key === 'v') {
 				const text = await navigator.clipboard.readText();
+				console.log(await navigator.clipboard.read());
 				let parsed;
 				try {
 					parsed = JSON.parse(text);
@@ -94,14 +95,25 @@
 					const selectedBox = collaborators.self.objectsSelectedBox;
 					const cursor = collaborators.self.cursor;
 
-					let originalTopLeft: Point = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
+					let originalSelectedBox: Box = {
+						width: 0,
+						height: 0,
+						pos: { x: Number.MAX_VALUE, y: Number.MAX_VALUE },
+						rotation: 0
+					};
 
 					parsed.forEach((object: Object) => {
 						const corners: Point[] = getBoxCorners(object.box);
 						corners.forEach((corner) => {
-							originalTopLeft = {
-								x: Math.min(originalTopLeft.x, corner.x),
-								y: Math.min(originalTopLeft.y, corner.y)
+							const pos: Point = {
+								x: Math.min(originalSelectedBox.pos.x, corner.x),
+								y: Math.min(originalSelectedBox.pos.y, corner.y)
+							};
+							originalSelectedBox = {
+								width: Math.max(corner.x - pos.x, originalSelectedBox.width),
+								height: Math.max(corner.y - pos.y, originalSelectedBox.height),
+								pos,
+								rotation: 0
 							};
 						});
 					});
@@ -115,13 +127,24 @@
 								? {
 										...obj.box,
 										pos: {
-											x: obj.box.pos.x - originalTopLeft.x + selectedBox.pos.x + 50 / scale,
-											y: obj.box.pos.y - originalTopLeft.y + selectedBox.pos.y + 50 / scale
+											x: obj.box.pos.x - originalSelectedBox.pos.x + selectedBox.pos.x + 50 / scale,
+											y: obj.box.pos.y - originalSelectedBox.pos.y + selectedBox.pos.y + 50 / scale
 										}
 									}
 								: {
 										...obj.box,
-										pos: { x: cursor.x - obj.box.width / 2, y: cursor.y - obj.box.height / 2 }
+										pos: {
+											x:
+												obj.box.pos.x -
+												originalSelectedBox.pos.x +
+												cursor.x -
+												originalSelectedBox.width / 2,
+											y:
+												obj.box.pos.y -
+												originalSelectedBox.pos.y +
+												cursor.y -
+												originalSelectedBox.height / 2
+										}
 									}
 					}));
 					let topLeft: Point = { x: Number.MAX_VALUE, y: Number.MAX_VALUE };
@@ -150,6 +173,14 @@
 							rotation: 0
 						}
 					});
+					actions = [
+						...actions.slice(0, actionsIndex[0] + 1),
+						{
+							type: 'add',
+							objects: updatedObjects
+						}
+					];
+					actionsIndex = [actionsIndex[0] + 1, 0];
 					board.updateObjects(updatedObjects);
 				}
 			}
