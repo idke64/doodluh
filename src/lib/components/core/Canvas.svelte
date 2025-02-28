@@ -1131,6 +1131,7 @@
 			case 'arrow':
 				break;
 			case 'pencil':
+				strokePath.push({ x: curr.x, y: curr.y });
 				if (strokePath.length == 1 && isPanZoom) break;
 				currItem = getItem(curr);
 				actions = [

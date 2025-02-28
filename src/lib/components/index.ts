@@ -2,8 +2,7 @@ export { default as Canvas } from './core/Canvas.svelte';
 export { default as BlurContainer } from './core/BlurContainer.svelte';
 export { default as App } from './core/App.svelte';
 
-
-export { default as ThemeProvider } from './ThemeProvider.svelte';
+export { default as ThemeProvider } from './core/ThemeProvider.svelte';
 
 export { default as Toolbar } from './toolbar/Toolbar.svelte';
 export { default as ToolbarSettings } from './toolbar/ToolbarSettings.svelte';
