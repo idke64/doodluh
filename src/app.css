@@ -26,7 +26,7 @@
 	}
 
 	.btn-secondary {
-		@apply relative flex h-8 items-center justify-center rounded border border-2 bg-bg-2 text-sm font-[450] text-text-3 duration-200 hover:bg-btn-hover;
+		@apply relative flex h-8 items-center justify-center rounded border-2 bg-bg-2 text-sm font-[450] text-text-3 duration-200 hover:bg-btn-hover;
 	}
 
 	.btn-icon {
@@ -45,8 +45,16 @@
 		@apply flex w-full items-center justify-start gap-x-2 rounded-sm border-2 border-transparent px-2 py-1 text-sm font-[450] text-text-3 hover:border-border hover:bg-btn-hover hover:text-text-1;
 	}
 
+	.btn-dropdown-static {
+		@apply flex w-full items-center justify-start gap-x-2 border-2 border-transparent px-2 py-1 text-sm font-[450] text-text-3;
+	}
+
 	.btn-logout {
 		@apply flex w-full items-center justify-start gap-x-2 rounded-sm border-2 border-transparent px-2 py-1 text-sm font-[450] text-text-3 hover:border-red-300/30 hover:bg-red-300/10 hover:text-red-500;
+	}
+
+	.item-dropdown {
+		@apply flex w-full items-center justify-between gap-x-2 rounded-sm border-2 border-transparent px-2 text-sm font-[450] text-text-3;
 	}
 
 	.tooltip-top {
@@ -66,19 +74,19 @@
 	}
 
 	.fixed-headers-start {
-		@apply absolute left-4 top-4 flex items-start justify-start gap-3;
+		@apply absolute left-4 top-4 flex items-center justify-start gap-4;
 	}
 
 	.fixed-headers-end {
-		@apply absolute right-4 top-4 flex items-start justify-end gap-3;
+		@apply absolute right-4 top-4 flex items-center justify-end gap-4;
 	}
 
 	.fixed-footers-start {
-		@apply absolute bottom-4 left-4 flex items-end justify-start gap-3;
+		@apply absolute bottom-4 left-4 flex items-center justify-start gap-4;
 	}
 
 	.fixed-footers-end {
-		@apply absolute bottom-4 right-4 flex items-end justify-end gap-3;
+		@apply absolute bottom-4 right-4 flex items-center justify-end gap-4;
 	}
 
 	.fixed-left {

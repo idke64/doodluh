@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Board } from '$lib/types';
 	import { camelToTitleCase } from '$lib/utils';
+	import { faBorderAll, faBorderNone, faXmark } from '@fortawesome/free-solid-svg-icons';
+	import ToggleSwitch from '../ui/ToggleSwitch.svelte';
 
 	let { board, loading } = $props<{ board: Board; loading: boolean }>();
 </script>

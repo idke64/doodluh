@@ -6,6 +6,13 @@ import { objectToTransport, throttle, transportToObject } from '$lib/utils';
 import { PUBLIC_SOCKET_URL } from '$env/static/public';
 import { boards } from './boards.svelte';
 
+const THROTTLE_DELAYS = {
+	COLLABORATOR_UPDATE: 100,
+	OBJECT_UPDATE: 100,
+	TEMP_OBJECT_UPDATE: 500,
+	TEMP_OBJECT_DELETE: 500
+} as const;
+
 const defaultBoard: Board = {
 	id: uuidv4(),
 	name: 'Untitled',
@@ -111,22 +118,25 @@ export function createRealtimeBoard(boardId: string) {
 	const emitters = {
 		updateSelf: throttle((updates: Partial<Collaborator>) => {
 			socket?.emit('update_collaborator', updates, collaborators.self.id);
-		}, 100),
+		}, THROTTLE_DELAYS.COLLABORATOR_UPDATE),
+
 		updateTempObjects: throttle((newObjects: Object[]) => {
 			const transportObjects = newObjects.map((object) => {
 				return objectToTransport(object);
 			});
 			socket?.emit('update_temp_objects', transportObjects);
-		}, 500),
+		}, THROTTLE_DELAYS.TEMP_OBJECT_UPDATE),
+
 		deleteTempObjects: throttle((objectIds: string[]) => {
 			socket?.emit('delete_temp_objects', objectIds);
-		}, 500),
+		}, THROTTLE_DELAYS.TEMP_OBJECT_DELETE),
+
 		updateObjects: throttle((newObjects: Object[]) => {
 			const transportObjects = newObjects.map((object) => {
 				return objectToTransport(object);
 			});
 			socket?.emit('update_objects', transportObjects);
-		}, 100)
+		}, THROTTLE_DELAYS.OBJECT_UPDATE)
 	};
 
 	let collaborators = $state({

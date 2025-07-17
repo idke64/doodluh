@@ -26,3 +26,4 @@ export { default as BoardCard } from './ui/BoardCard.svelte';
 export { default as ErrorPage } from './ui/ErrorPage.svelte';
 export { default as Shape } from './ui/Shape.svelte';
 export { default as LoadingPage } from './ui/LoadingPage.svelte';
+export { default as ToggleSwitch } from './ui/ToggleSwitch.svelte';

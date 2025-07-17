@@ -8,15 +8,24 @@
 		faTerminal,
 		faUser,
 		faMoon,
-		faRightFromBracket
+		faRightFromBracket,
+		faBorderAll,
+		faBorderNone,
+		faXmark,
+		faCircleHalfStroke,
+		faBorderTopLeft
 	} from '@fortawesome/free-solid-svg-icons';
+
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa';
 	import { theme } from '$lib/shared';
 	import { getContext } from 'svelte';
 	import type { User } from '$lib/server/database/schema';
-	import { fly, scale } from 'svelte/transition';
+	import { scale } from 'svelte/transition';
 	import { currModal } from '$lib/shared';
+	import { ToggleSwitch } from '$lib/components';
+
+	let { board } = $props();
 
 	const user: User = getContext('user');
 
@@ -30,24 +39,6 @@
 		}
 	}
 
-	let firstSpin = $state(false);
-	let secondSpin = $state(false);
-
-	const handleSpinTransition = () => {
-		if (firstSpin) {
-			firstSpin = false;
-			if ($theme === 'dark') {
-				$theme = 'light';
-			} else {
-				$theme = 'dark';
-			}
-
-			secondSpin = true;
-		} else {
-			secondSpin = false;
-		}
-	};
-
 	onMount(() => {
 		document.addEventListener('click', handleClickOutside);
 
@@ -57,7 +48,7 @@
 	});
 </script>
 
-<div bind:this={dropdown} class="relative translate-y-1">
+<div bind:this={dropdown} class="relative">
 	<button
 		class="{isOpen ? 'btn-icon-active' : 'btn-icon'} rounded shadow"
 		onclick={() => (isOpen = !isOpen)}
@@ -116,22 +107,37 @@
 				<button class="btn-dropdown"><Fa class="aspect-square" icon={faTerminal} />Commands</button>
 				<button class="btn-dropdown"><Fa class="aspect-square" icon={faKeyboard} />Keybinds</button>
 			</div>
-			<div class="my-1 h-[0.5px] w-full bg-border"></div>
+			<div class="my-1 h-[1px] w-full bg-border"></div>
 			<div class="w-full">
-				<button
-					class="btn-dropdown"
-					onclick={() => {
-						if (!firstSpin && !secondSpin) {
-							firstSpin = true;
-						}
-					}}
-					onanimationend={handleSpinTransition}
-					><Fa
-						icon={$theme === 'dark' ? faSun : faMoon}
-						class="{(firstSpin && 'animate-spin-slow-1') ||
-							(secondSpin && 'animate-spin-slow-2')} aspect-square text-themeicon"
-					/>Theme</button
-				>
+				<div class="item-dropdown">
+					<div class="flex items-center gap-x-2">
+						<Fa class="aspect-square" icon={faBorderTopLeft} />
+						<span>Grid</span>
+					</div>
+					<ToggleSwitch
+						options={['lines', 'dots', 'none']}
+						optionsIcons={[faBorderAll, faBorderNone, faXmark]}
+						onupdate={(gridVal: 'lines' | 'dots' | 'none') => board.update({ grid: gridVal })}
+						value={board.grid}
+					/>
+				</div>
+			</div>
+			<div class="w-full">
+				<div class="item-dropdown">
+					<div class="flex items-center gap-x-2">
+						<Fa class="aspect-square" icon={faCircleHalfStroke} />
+						<span>Theme</span>
+					</div>
+
+					<ToggleSwitch
+						options={['dark', 'light']}
+						optionsIcons={[faMoon, faSun]}
+						onupdate={(themeVal: 'dark' | 'light') => {
+							$theme = themeVal;
+						}}
+						value={$theme}
+					/>
+				</div>
 			</div>
 			{#if user != null}
 				<div class="my-1 h-[0.5px] w-full bg-border"></div>

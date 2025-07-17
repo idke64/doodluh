@@ -1,6 +1,4 @@
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
-import type { Writable } from 'svelte/store';
 import type { ToolSettings } from '$lib/types';
 
 const defaultToolSettings: ToolSettings = {

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { theme } from '$lib/shared';
 	import { getThemeAwareColor } from '$lib/utils';
-	// import { faFaceSmile, faSmile, faUser } from '@fortawesome/free-solid-svg-icons';
 	import { faFaceSmile } from '@fortawesome/free-regular-svg-icons';
 	import { faUser } from '@fortawesome/free-solid-svg-icons';
 	import Fa from 'svelte-fa';

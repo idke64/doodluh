@@ -223,6 +223,46 @@
 		ctx.restore();
 	}
 
+	function drawGridDots() {
+		const logGridScale = Math.log(scale * 100) / Math.log(4);
+		const lowerLog = Math.floor(logGridScale);
+		const upperLog = lowerLog + 1;
+
+		const gridSize = (10000 / Math.pow(4, lowerLog)) * scale;
+		const subGridProgress = upperLog - Math.round(logGridScale);
+
+		ctx.save();
+		ctx.fillStyle = $theme === 'dark' ? '#f5f5f5' : '#2d2b32';
+		ctx.globalAlpha = 0.2;
+
+		let gridOffset: Point = { x: offset.x % gridSize, y: offset.y % gridSize };
+
+		for (let x = gridOffset.x; x < canvasWidth; x += gridSize) {
+			for (let y = gridOffset.y; y < canvasHeight; y += gridSize) {
+				ctx.beginPath();
+				ctx.arc(x, y, 4, 0, 2 * Math.PI);
+				ctx.fill();
+			}
+		}
+
+		if (subGridProgress < 0.8) {
+			gridOffset = { x: offset.x % (gridSize / 4), y: offset.y % (gridSize / 4) };
+			ctx.globalAlpha = 0.1;
+
+			for (let x = gridOffset.x; x < canvasWidth; x += gridSize / 4) {
+				for (let y = gridOffset.y; y < canvasHeight; y += gridSize / 4) {
+					if (x % gridSize !== 0 || y % gridSize !== 0) {
+						ctx.beginPath();
+						ctx.arc(x, y, 0.8, 0, 2 * Math.PI);
+						ctx.fill();
+					}
+				}
+			}
+		}
+
+		ctx.restore();
+	}
+
 	function drawCursors(): void {
 		for (const other of collaborators.others) {
 			const localCursor = getLocalPoint(other.cursor);
@@ -278,6 +318,8 @@
 		ctxOutline.clearRect(0, 0, canvasWidth, canvasHeight);
 		if (board.grid === 'lines') {
 			drawGridLines();
+		} else if (board.grid === 'dots') {
+			drawGridDots();
 		}
 		drawBoard();
 		drawOutlines();
@@ -412,6 +454,8 @@
 					break;
 				case 'text':
 					break;
+				case 'image':
+					
 			}
 			ctx.restore();
 		}

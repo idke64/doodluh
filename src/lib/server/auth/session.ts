@@ -23,7 +23,6 @@ export const createSession = async (token: string, userId: string): Promise<User
 		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
 	};
 	const s = await db.insert(userSessions).values(session);
-	console.log('creating session', s);
 	return session;
 };
 

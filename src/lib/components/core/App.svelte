@@ -84,7 +84,6 @@
 			}
 			if (key === 'v') {
 				const text = await navigator.clipboard.readText();
-				console.log(await navigator.clipboard.read());
 				let parsed;
 				try {
 					parsed = JSON.parse(text);
@@ -242,13 +241,11 @@
 		<LoadingPage />
 	{:else}
 		<div class="fixed-headers-start" transition:fly={{ duration: 600, y: -50 }}>
-			<div class="flex items-center gap-3 max-sm:flex-col max-sm:items-start">
-				<BoardBar {board} {loading} />
-				<Collaborators others={collaborators.others} />
-			</div>
+			<BoardBar {board} {loading} />
 		</div>
 		<div class="fixed-headers-end" transition:fly={{ duration: 600, y: -50 }}>
-			<Menu />
+			<Collaborators others={collaborators.others} />
+			<Menu {board} />
 		</div>
 		<div class="fixed-footers-start" transition:fly={{ duration: 600, y: 50 }}>
 			<a
